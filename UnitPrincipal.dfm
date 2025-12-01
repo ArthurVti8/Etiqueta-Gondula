@@ -323,12 +323,12 @@ object GeradorEtiquetas: TGeradorEtiquetas
     Height = 21
     TabOrder = 11
   end
-  object rgFormatoExportacao: TRadioGroup
+  object FormatoExportacao: TRadioGroup
     Left = 176
     Top = 248
     Width = 138
     Height = 59
-    Caption = 'rgFormatoExportacao'
+    Caption = 'FormatoExportacao'
     Items.Strings = (
       'CSV (Texto)'
       'XLS (Excel Organizado)')

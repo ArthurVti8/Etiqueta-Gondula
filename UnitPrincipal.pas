@@ -55,7 +55,7 @@ type
     ppLabel1: TppLabel;
     ppDBText1: TppDBText;
     ppLabel2: TppLabel;
-    rgFormatoExportacao: TRadioGroup;
+    FormatoExportacao: TRadioGroup;
     procedure BtnGerarEtiquetaClick(Sender: TObject);
     procedure BtnExcelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
