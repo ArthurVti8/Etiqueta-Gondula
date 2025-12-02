@@ -717,7 +717,7 @@ object GeradorEtiquetas: TGeradorEtiquetas
       '    ON P.au_ite = I.CodReduzido'
       'ORDER BY'
       '    P.au_ite')
-    Left = 80
+    Left = 96
     Top = 24
   end
 end

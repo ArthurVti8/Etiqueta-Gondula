@@ -17,7 +17,7 @@ uses
 
 type
   TGeradorEtiquetas = class(TForm)
-    Conexao: TFDConnection;
+    Conexao: TFDConnection; // AQUI: Nome trocado para Conexao
     DBGrid1: TDBGrid;
     DataSource1: TDataSource;
     ppDBPipeline1: TppDBPipeline;
@@ -104,14 +104,11 @@ begin
     HTML.Add('<html><head><meta charset="UTF-8"></head><body>');
     HTML.Add('<table border="1" style="font-size:9pt;border-collapse:collapse;">');
 
-    // 1. Cabeçalho (Header)
     FieldNames := '';
     for I := 0 to DataSet.Fields.Count - 1 do
-      // Aplica NEGRITO e COR DE FUNDO
       FieldNames := FieldNames + '<th style="background-color:#EFEFEF;font-weight:bold;padding:5px;border:1px solid #CCC;">' + DataSet.Fields[I].FieldName + '</th>';
     HTML.Add('<tr>' + FieldNames + '</tr>');
 
-    // 2. Dados (Rows)
     DataSet.DisableControls;
     try
       DataSet.First;
@@ -122,7 +119,6 @@ begin
         begin
           FieldValue := DataSet.Fields[I].AsString;
 
-          // Formatação de Preço e Alinhamento
           if (DataSet.Fields[I].FieldName = 'PrecoMinimo') or
              (DataSet.Fields[I].FieldName = 'PrecoMaximo') then
           begin
@@ -131,7 +127,6 @@ begin
           end
           else
           begin
-            // Tratamento de caracteres especiais e Alinhamento padrão
             FieldValue := StringReplace(FieldValue, '<', '&lt;', [rfReplaceAll]);
             FieldValue := StringReplace(FieldValue, '>', '&gt;', [rfReplaceAll]);
             HTML.Add('<td style="border:1px solid #CCC;">' + FieldValue + '</td>');
@@ -160,13 +155,10 @@ var
   LinhaDados: string;
   I: Integer;
   FieldValue: string;
-  // DECLARAÇÃO CORRETA DA VARIÁVEL
   UseXLSFormat: Boolean;
 const
   CSV_SEPARATOR = #9;
 begin
-  // --- INICIALIZAÇÃO CORRETA DA VARIÁVEL ---
-  // Assumindo que 1 é o índice para o formato XLS (organizado)
   UseXLSFormat := (rgFormatoExportacao.ItemIndex = 1);
 
   SaveDialog := TSaveDialog.Create(nil);
@@ -174,11 +166,9 @@ begin
   try
     if UseXLSFormat then
     begin
-      // --- EXPORTAÇÃO XLS (HTML ORGANIZADO) ---
       SaveDialog.Filter := 'Arquivo Excel (*.xls)|*.xls';
       SaveDialog.DefaultExt := 'xls';
     end else begin
-      // --- EXPORTAÇÃO CSV/TXT (TAB SEPARADO) ---
       SaveDialog.Filter := 'Arquivo de Texto (*.txt)|*.txt|Arquivo Excel CSV (*.csv)|*.csv';
       SaveDialog.DefaultExt := 'txt';
     end;
@@ -194,13 +184,11 @@ begin
 
       if UseXLSFormat then
       begin
-        // GERAÇÃO DE HTML (XLS Organizado)
         HTMLContent := BuildHTMLTable(FDQuery2);
         TempList.Text := HTMLContent;
       end else begin
         // GERAÇÃO DE CSV/TXT (Separador TAB)
 
-        // 1. Exporta Cabeçalho CSV
         LinhaDados := '';
         for I := 0 to FDQuery2.Fields.Count - 1 do
         begin
@@ -210,7 +198,6 @@ begin
         end;
         TempList.Add(LinhaDados);
 
-        // 2. Exporta Registros CSV
         FDQuery2.DisableControls;
         try
           FDQuery2.First;
@@ -236,7 +223,6 @@ begin
         end;
       end;
 
-      // Salva o conteúdo gerado (UTF-8 com BOM para garantir organização no Excel)
       TempList.SaveToFile(CaminhoArquivo, TEncoding.UTF8);
 
       ShowMessage('Exportação completa para: ' + CaminhoArquivo + '.');
@@ -246,6 +232,7 @@ begin
     TempList.Free;
   end;
 end;
+
 procedure TGeradorEtiquetas.FormCreate(Sender: TObject);
 var
   I: Integer;
@@ -279,10 +266,11 @@ var
   BaseSQL: string;
   FinalSQL: string;
   I: Integer;
-  SaveDlg: TSaveDialog;
   SaidaImpressao: string;
+  ListaDeCodigosFormatada: string; // Adicionada a nova variável de formatação
 begin
 
+  // --- Normalização de Códigos e Limpeza de Entrada ---
   ListaDeCodigos := StringReplace(edtCodigo.Text, ' ', ',', [rfReplaceAll]);
   ListaDeCodigos := StringReplace(ListaDeCodigos, #13#10, ',', [rfReplaceAll]);
   while Pos(',,', ListaDeCodigos) > 0 do
@@ -298,6 +286,11 @@ begin
     Exit;
   end;
 
+  // --- CORREÇÃO DE FORMATO SQL (ADICIONANDO ASPAS SIMPLES E VÍRGULAS) ---
+  // Transforma a lista de '000001,000002' em "'000001','000002'"
+  ListaDeCodigosFormatada := '''' + StringReplace(ListaDeCodigos, ',', ''',''', [rfReplaceAll]) + '''';
+
+  // --- Leitura de Parâmetros e Cálculos de Layout ---
   if not TryStrToInt(edtQuantidade.Text, Quantidade) then Quantidade := 1;
   if Quantidade <= 0 then Quantidade := 1;
 
@@ -332,6 +325,7 @@ begin
       ppDetailBand1.ColumnTraversal := ctLeftToRight;
   end;
 
+  // --- Lógica SQL (Construção do UNION ALL) ---
   FDQuery2.Close;
 
   BaseSQL :=
@@ -344,9 +338,10 @@ begin
     if I > 1 then
       FinalSQL := FinalSQL + ' UNION ALL ';
 
-    FinalSQL := FinalSQL + '(SELECT * FROM (' + BaseSQL + ') AS Base WHERE Base.CodigoProduto IN (''' + ListaDeCodigos + '''))';
+    FinalSQL := FinalSQL + '(SELECT * FROM (' + BaseSQL + ') AS Base WHERE Base.CodigoProduto IN (' + ListaDeCodigosFormatada + '))'; // <<< USANDO A LISTA FORMATADA
   end;
 
+  // --- Execução da Query ---
   FDQuery2.SQL.Text := FinalSQL + ' ORDER BY CodigoProduto';
   try
     FDQuery2.Open;
@@ -358,10 +353,15 @@ begin
     end;
   end;
 
+  // --- Disparo do Preview (Visualizar) ---
   Etiqueta.ShowPrintDialog := True;
   Etiqueta.PrintReport;
 
+  // --- Restauração ---
   FDQuery2.Close;
+  BaseSQL :=
+    'SELECT P.au_ite AS CodigoProduto, P.ab_ite + '' '' + P.ac_ite AS Descricao, P.ad_ite AS CodigoUnidade, A.PrecoVendaMin AS PrecoMinimo, A.PrecoVendaMax AS PrecoMaximo, I.NCM AS NCM_Imposto, I.CSTsaidas AS CST_Saida, I.ALIQUOTAICMS AS AliquotaICMS ' +
+    'FROM CE_PRODUTO P INNER JOIN CE_PRODUTOS_ADICIONAIS A ON P.au_ite = A.CodReduzido INNER JOIN CE_PRODUTOS_IMPOSTOS I ON P.au_ite = I.CodReduzido';
   FDQuery2.SQL.Text := BaseSQL + ' ORDER BY P.au_ite';
   FDQuery2.Open;
 end;
