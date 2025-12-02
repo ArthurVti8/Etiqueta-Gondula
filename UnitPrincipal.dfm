@@ -1,6 +1,7 @@
 object GeradorEtiquetas: TGeradorEtiquetas
   Left = 0
   Top = 0
+  Anchors = [akTop]
   ClientHeight = 379
   ClientWidth = 690
   Color = clBtnFace
@@ -10,154 +11,18 @@ object GeradorEtiquetas: TGeradorEtiquetas
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poDesktopCenter
   OnCreate = FormCreate
-  DesignSize = (
-    690
-    379)
+  OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
-  object Image1: TImage
-    Left = -22
-    Top = 87
-    Width = 449
-    Height = 298
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Picture.Data = {
-      0A544A504547496D61676506070000FFD8FFE000104A46494600010100000100
-      010000FFDB0084000906070D0D0D0D0D0D0D0D0D0D0D0D0D070D0D0D0D0F0D0D
-      0D0D1511161615111315181D2820181A251B151521312125292B2E2E3A171F33
-      38332C37282D2E2B010A0A0A0D0D0D0F0D0D0F2B1915192B2B2D37372B2B2D2B
-      2D372B2D2D2B372D2D3737372B2B2B37372D2B2D2D2B2B2B2B2D2D2B2B2B2B2B
-      2B2B2D2D2B2B2B2B2BFFC000110800B7011303012200021101031101FFC40018
-      00010101010100000000000000000000000302000107FFC40018100101010101
-      00000000000000000000000001021112FFC40018010003010100000000000000
-      00000000000001020306FFC40018110101010101000000000000000000000000
-      01110212FFDA000C03010002110311003F00F3FC9722C972E9DCEF44C9722C97
-      2B65D1724C8B25CAA31E8D92E4392E5718745C9323C932A8C7A2E499164B14CA
-      9324C8F2B8A8CA921071714CAAA3AE46E84B953549A0E2343ABD22A5A41D1E89
-      A1E89AC1E85A2E85A4D6DC8F42D1343D22B6E45A168BA16935B723D0B45D0B49
-      6DC8B43D9342D22B6E50CCC4D1B25C8B25C84F45C932285C2D8F45C9721C972A
-      8C7A36499164995463D1B25C8724CD5C63D1B24C8B2BCA995345C16692538CAC
-      2E6AA514AB954CEC275BA8EB74D38AB536B753691C8E6AA34EDA8B49A489A3D2
-      E8F552D22343D2F43D156DC8F42D1342D22B5E51A1689AA2A9ADB91E85A2685A
-      4B6E51A1689A1E915B728672D6268D92E05926682E8B926459266AE31A6C9607
-      248718F47CD2668734995C65D43E6933439A495518F50D9A4CD0E69335519585
-      95728A55CA6CEC2CAECA39552A9161256EA3ADD1A9C55AE5A9EB968D3C76D45A
-      D6A2D25C8DAA3B5DB51AA4D244EA8F555AA3D54B4913AA2D55EA8F5515B7307A
-      1E97AA3D54D6DCC1E85A268552DB94E85A2685A4B5E50CCE25A3649916692085
-      4D9A482CAE2E32A6CD2E68334B9AA65D43669334329335518D87CD266833499A
-      A8CAC3E6AE50CAB954CAC34AA9452AE5367616576514AA94D384EB751E9BD02C
-      5F5CB51E9CB40C55A8B5CB53685C8EDA3B5DB476A57235A3D576D1DA9AD2472D
-      16AAB547AA96D227547A5EA8B5535AF311AA3D2F547535B488D51E97AA3D25AC
-      4B396B12DCC932184CD02C36692073499A6CBA8594B9A18BCD5B2B0F9ABCD0E6
-      92538CAC34A4CD04A4954CEC3CAB9412AE6952B2B0D2AE50CAA955A8B0D2BBD1
-      4AEF42709D77A3EB74CB17D73A9EA7D0D18BB536A7A9B4B5523B6A2D6B51695A
-      B91B551AAD6A2D4B491CD51DAEDA8D54D6B227547AAAD515A96BCC72D1EAAAD1
-      EAA6B5913AA3D2A8F5535AC8E339D625B9179A295728161A55E68A55CAA6761E
-      55CA1CD24A719585CD24A09499AA6761E55CA19552AB5958795728255CA68B0D
-      2AA50CD2A68D179375DE86554D1EA7C93AEF45E9BD1E97927A73A8F4E7A2D1E5
-      76A6D4DA9B46AA72AB536A6E93692E46B516B5A8B52B91AD45AD68F549A48DAA
-      8B5AD45A9AD6473547AAEEAA2D4B59136A355DD545A4D247192C95E34AA94715
-      0CEC366AE50CA4CD36761652668655E69B3B0D2AE50CAB9552B3B0D9AB9412AE
-      68D9D87955286554A7A8B0D34A9432BB29A2C37A77D0BD3BE8F53E4BE9BD0BD3
-      7A1A3C97D39E87E9CF4347925A9B516B9D1A722AE936A6D4DA5AB9156A2D72E9
-      1692E476D1DAD6A6D2B5A48D68F55DBA1DA869235A8D576D1DA4D2472D45AEDA
-      8B49A48CEA18958E4AB83955283B0B2AA514AB94D161655CA195729B3B0D2AE5
-      0CAA94D161E554A19A5CA72B3B0B2AA6832AA5526C34AA9A0CAAF468BC97D3BD
-      14D37A1A5E4BD6E8FD37A1A5E49D73A8EB97434612E936A2E9CBA0AF2BB53748
-      B53692A72AB536B96A6D2B5523B6A2D72D45A969235A9B5AD45A4B91AD45AD6A
-      6D2692396A6D6B53692E46EB27AC4AC7152A1D07492AE514AA94D1616554A395
-      529A6C2CAA9452AA536761655CD0A576534D869A57432AA68D1792F5DE8A695E
-      8F5384EBBD1F5BA34B09D6EA3ADD3D18BEB751D73A3462FAE751D72E8B4F17D4
-      DA8BA72D2D54E55749B536B9692A476D4DAE5A8B49723B6A2D6B53692E46B516
-      BB6A2D25C8D6A6D76D4D2548DD67181B346606ECAA951140AC5CAA9472ABA69B
-      092AA51CAECA68B0B2AA514AAE84D8595D9452ABD1A6C275D947D77A7A9C27A7
-      7D0FADD0584F4EF45D77A062FD37A1F5BA062FD39D475CE8D3C5F5CEA2D72E8B
-      4F156A6D4DAE5A4A91DB536B9D72D0A91AD4DAD6A6D25C8D6A6D6B5CB495235A
-      E3305333300CCCC0333300EAA543B282C5F5528FAECA69C24AAE8BAAE82C24AE
-      F472BBD34E13AEFA1F5DE82C275BD0FAEF4162FD3BE87D6E818BF4DE91D6E818
-      BEB9D475CE818BEB9D4F5CE8563B6B96A6D72D23C76D72D73AE5A158D6B96B8E
-      74958EDAE33036666019998066660199980666601A57656604EF5DEB302AEF5D
-      9598C9DEBBD6604DD7598C9BADD6601BADD6601CB5CEBAC46E75CB5981B9D73A
-      CC471CEB9D6606E3330366660199980666601FFFD9}
-    Stretch = True
-  end
-  object Label2: TLabel
-    AlignWithMargins = True
-    Left = 163
-    Top = 87
-    Width = 61
-    Height = 13
-    Anchors = [akLeft, akRight]
-    Caption = 'Quantidades'
-  end
-  object Label3: TLabel
-    AlignWithMargins = True
-    Left = 8
-    Top = 87
-    Width = 89
-    Height = 13
-    Anchors = [akLeft, akRight]
-    Caption = 'Codigo do Produto'
-  end
-  object Label4: TLabel
-    AlignWithMargins = True
-    Left = 8
-    Top = 133
-    Width = 38
-    Height = 13
-    Anchors = [akLeft, akRight]
-    Caption = 'Colunas'
-  end
-  object Label5: TLabel
-    AlignWithMargins = True
-    Left = 8
-    Top = 188
-    Width = 37
-    Height = 13
-    Anchors = [akLeft, akRight]
-    Caption = 'Largura'
-  end
-  object Label6: TLabel
-    AlignWithMargins = True
-    Left = 88
-    Top = 188
-    Width = 29
-    Height = 13
-    Anchors = [akLeft, akRight]
-    Caption = 'Altura'
-  end
-  object Label7: TLabel
-    AlignWithMargins = True
-    Left = 163
-    Top = 188
-    Width = 134
-    Height = 13
-    Anchors = [akLeft, akRight]
-    Caption = 'Espa'#231'amento Entre Colunas'
-  end
-  object Label8: TLabel
-    AlignWithMargins = True
-    Left = 108
-    Top = 133
-    Width = 125
-    Height = 13
-    Anchors = [akLeft, akRight]
-    Caption = 'Definir Unidade de Medida'
-  end
-  object label9: TLabel
-    Left = 8
-    Top = 248
-    Width = 79
-    Height = 13
-    Caption = 'Tipo Imprenssao'
-  end
   object DBGrid1: TDBGrid
-    Left = 320
+    Left = 312
     Top = 81
-    Width = 370
+    Width = 378
     Height = 298
     Align = alRight
+    Anchors = [akLeft, akTop, akRight, akBottom]
     DataSource = DataSource1
     TabOrder = 0
     TitleFont.Charset = DEFAULT_CHARSET
@@ -212,24 +77,13 @@ object GeradorEtiquetas: TGeradorEtiquetas
         Visible = True
       end>
   end
-  object BtnGerarEtiqueta: TButton
-    AlignWithMargins = True
-    Left = 8
-    Top = 313
-    Width = 121
-    Height = 25
-    Anchors = [akLeft, akRight]
-    Caption = 'Gerar Etiqueta'
-    TabOrder = 1
-    OnClick = BtnGerarEtiquetaClick
-  end
   object Panel1: TPanel
     Left = 0
     Top = 0
     Width = 690
     Height = 81
     Align = alTop
-    TabOrder = 2
+    TabOrder = 1
     object Label1: TLabel
       Left = 262
       Top = 31
@@ -244,93 +98,281 @@ object GeradorEtiquetas: TGeradorEtiquetas
       ParentFont = False
     end
   end
-  object edtCodigo: TEdit
-    AlignWithMargins = True
-    Left = 8
-    Top = 106
-    Width = 92
-    Height = 21
-    Anchors = [akLeft, akRight]
-    TabOrder = 3
-  end
-  object edtQuantidade: TEdit
-    AlignWithMargins = True
-    Left = 163
-    Top = 106
-    Width = 70
-    Height = 21
-    Anchors = [akLeft, akRight]
-    TabOrder = 4
-  end
-  object edtColuna: TEdit
-    AlignWithMargins = True
-    Left = 8
-    Top = 152
-    Width = 65
-    Height = 21
-    Anchors = [akLeft, akRight]
-    TabOrder = 5
-  end
-  object edtLargura: TEdit
-    AlignWithMargins = True
-    Left = 8
-    Top = 207
-    Width = 57
-    Height = 21
-    Anchors = [akLeft, akRight]
-    TabOrder = 6
-  end
-  object edtAltura: TEdit
-    AlignWithMargins = True
-    Left = 88
-    Top = 207
-    Width = 57
-    Height = 21
-    Anchors = [akLeft, akRight]
-    TabOrder = 7
-  end
-  object cbUnidade: TComboBox
-    Left = 108
-    Top = 152
-    Width = 145
-    Height = 21
-    TabOrder = 8
-    Items.Strings = (
-      'Polegadas')
-  end
-  object edtEspacamento: TEdit
-    Left = 163
-    Top = 207
-    Width = 151
-    Height = 21
-    TabOrder = 9
-  end
-  object BtnExcel: TButton
-    Left = 176
-    Top = 313
-    Width = 121
-    Height = 25
-    Caption = 'Exportar Para Excel'
-    TabOrder = 10
-    OnClick = BtnExcelClick
-  end
-  object cbTipoImpressao: TComboBox
-    Left = 8
-    Top = 267
-    Width = 145
-    Height = 21
-    TabOrder = 11
-  end
-  object rgFormatoExportacao: TRadioGroup
-    Left = 176
-    Top = 248
-    Width = 138
-    Height = 59
-    Caption = 'rgFormatoExportacao'
-    Items.Strings = (
-      'CSV (Texto)'
-      'XLS (Excel Organizado)')
-    TabOrder = 12
+  object Panel2: TPanel
+    Left = 0
+    Top = 81
+    Width = 313
+    Height = 298
+    Align = alLeft
+    Anchors = [akTop]
+    Caption = 'Panel2'
+    TabOrder = 2
+    DesignSize = (
+      313
+      298)
+    object Image1: TImage
+      Left = 1
+      Top = 1
+      Width = 311
+      Height = 296
+      Align = alClient
+      Picture.Data = {
+        0A544A504547496D61676506070000FFD8FFE000104A46494600010100000100
+        010000FFDB0084000906070D0D0D0D0D0D0D0D0D0D0D0D0D070D0D0D0D0F0D0D
+        0D0D1511161615111315181D2820181A251B151521312125292B2E2E3A171F33
+        38332C37282D2E2B010A0A0A0D0D0D0F0D0D0F2B1915192B2B2D37372B2B2D2B
+        2D372B2D2D2B372D2D3737372B2B2B37372D2B2D2D2B2B2B2B2D2D2B2B2B2B2B
+        2B2B2D2D2B2B2B2B2BFFC000110800B7011303012200021101031101FFC40018
+        00010101010100000000000000000000000302000107FFC40018100101010101
+        00000000000000000000000001021112FFC40018010003010100000000000000
+        00000000000001020306FFC40018110101010101000000000000000000000000
+        01110212FFDA000C03010002110311003F00F3FC9722C972E9DCEF44C9722C97
+        2B65D1724C8B25CAA31E8D92E4392E5718745C9323C932A8C7A2E499164B14CA
+        9324C8F2B8A8CA921071714CAAA3AE46E84B953549A0E2343ABD22A5A41D1E89
+        A1E89AC1E85A2E85A4D6DC8F42D1343D22B6E45A168BA16935B723D0B45D0B49
+        6DC8B43D9342D22B6E50CCC4D1B25C8B25C84F45C932285C2D8F45C9721C972A
+        8C7A36499164995463D1B25C8724CD5C63D1B24C8B2BCA995345C16692538CAC
+        2E6AA514AB954CEC275BA8EB74D38AB536B753691C8E6AA34EDA8B49A489A3D2
+        E8F552D22343D2F43D156DC8F42D1342D22B5E51A1689AA2A9ADB91E85A2685A
+        4B6E51A1689A1E915B728672D6268D92E05926682E8B926459266AE31A6C9607
+        248718F47CD2668734995C65D43E6933439A495518F50D9A4CD0E69335519585
+        95728A55CA6CEC2CAECA39552A9161256EA3ADD1A9C55AE5A9EB968D3C76D45A
+        D6A2D25C8DAA3B5DB51AA4D244EA8F555AA3D54B4913AA2D55EA8F5515B7307A
+        1E97AA3D54D6DCC1E85A268552DB94E85A2685A4B5E50CCE25A3649916692085
+        4D9A482CAE2E32A6CD2E68334B9AA65D43669334329335518D87CD266833499A
+        A8CAC3E6AE50CAB954CAC34AA9452AE5367616576514AA94D384EB751E9BD02C
+        5F5CB51E9CB40C55A8B5CB53685C8EDA3B5DB476A57235A3D576D1DA9AD2472D
+        16AAB547AA96D227547A5EA8B5535AF311AA3D2F547535B488D51E97AA3D25AC
+        4B396B12DCC932184CD02C36692073499A6CBA8594B9A18BCD5B2B0F9ABCD0E6
+        92538CAC34A4CD04A4954CEC3CAB9412AE6952B2B0D2AE50CAA955A8B0D2BBD1
+        4AEF42709D77A3EB74CB17D73A9EA7D0D18BB536A7A9B4B5523B6A2D6B51695A
+        B91B551AAD6A2D4B491CD51DAEDA8D54D6B227547AAAD515A96BCC72D1EAAAD1
+        EAA6B5913AA3D2A8F5535AC8E339D625B9179A295728161A55E68A55CAA6761E
+        55CA1CD24A719585CD24A09499AA6761E55CA19552AB5958795728255CA68B0D
+        2AA50CD2A68D179375DE86554D1EA7C93AEF45E9BD1E97927A73A8F4E7A2D1E5
+        76A6D4DA9B46AA72AB536A6E93692E46B516B5A8B52B91AD45AD68F549A48DAA
+        8B5AD45A9AD6473547AAEEAA2D4B59136A355DD545A4D247192C95E34AA94715
+        0CEC366AE50CA4CD36761652668655E69B3B0D2AE50CAB9552B3B0D9AB9412AE
+        68D9D87955286554A7A8B0D34A9432BB29A2C37A77D0BD3BE8F53E4BE9BD0BD3
+        7A1A3C97D39E87E9CF4347925A9B516B9D1A722AE936A6D4DA5AB9156A2D72E9
+        1692E476D1DAD6A6D2B5A48D68F55DBA1DA869235A8D576D1DA4D2472D45AEDA
+        8B49A48CEA18958E4AB83955283B0B2AA514AB94D161655CA195729B3B0D2AE5
+        0CAA94D161E554A19A5CA72B3B0B2AA6832AA5526C34AA9A0CAAF468BC97D3BD
+        14D37A1A5E4BD6E8FD37A1A5E49D73A8EB97434612E936A2E9CBA0AF2BB53748
+        B53692A72AB536B96A6D2B5523B6A2D72D45A969235A9B5AD45A4B91AD45AD6A
+        6D2692396A6D6B53692E46EB27AC4AC7152A1D07492AE514AA94D1616554A395
+        529A6C2CAA9452AA536761655CD0A576534D869A57432AA68D1792F5DE8A695E
+        8F5384EBBD1F5BA34B09D6EA3ADD3D18BEB751D73A3462FAE751D72E8B4F17D4
+        DA8BA72D2D54E55749B536B9692A476D4DAE5A8B49723B6A2D6B53692E46B516
+        BB6A2D25C8D6A6D76D4D2548DD67181B346606ECAA951140AC5CAA9472ABA69B
+        092AA51CAECA68B0B2AA514AAE84D8595D9452ABD1A6C275D947D77A7A9C27A7
+        7D0FADD0584F4EF45D77A062FD37A1F5BA062FD39D475CE8D3C5F5CEA2D72E8B
+        4F156A6D4DAE5A4A91DB536B9D72D0A91AD4DAD6A6D25C8D6A6D6B5CB495235A
+        E3305333300CCCC0333300EAA543B282C5F5528FAECA69C24AAE8BAAE82C24AE
+        F472BBD34E13AEFA1F5DE82C275BD0FAEF4162FD3BE87D6E818BF4DE91D6E818
+        BEB9D475CE818BEB9D4F5CE8563B6B96A6D72D23C76D72D73AE5A158D6B96B8E
+        74958EDAE33036666019998066660199980666601A57656604EF5DEB302AEF5D
+        9598C9DEBBD6604DD7598C9BADD6601BADD6601CB5CEBAC46E75CB5981B9D73A
+        CC471CEB9D6606E3330366660199980666601FFFD9}
+      Stretch = True
+      ExplicitLeft = 2
+    end
+    object Label2: TLabel
+      AlignWithMargins = True
+      Left = 180
+      Top = 16
+      Width = 61
+      Height = 13
+      Caption = 'Quantidades'
+      ParentShowHint = False
+      ShowHint = False
+    end
+    object Label3: TLabel
+      AlignWithMargins = True
+      Left = 8
+      Top = 16
+      Width = 89
+      Height = 13
+      Caption = 'Codigo do Produto'
+      ParentShowHint = False
+      ShowHint = False
+    end
+    object Label4: TLabel
+      AlignWithMargins = True
+      Left = 8
+      Top = 80
+      Width = 38
+      Height = 13
+      Caption = 'Colunas'
+      ParentShowHint = False
+      ShowHint = False
+    end
+    object Label5: TLabel
+      AlignWithMargins = True
+      Left = 8
+      Top = 128
+      Width = 37
+      Height = 13
+      Caption = 'Largura'
+      ParentShowHint = False
+      ShowHint = False
+    end
+    object Label6: TLabel
+      AlignWithMargins = True
+      Left = 80
+      Top = 128
+      Width = 29
+      Height = 13
+      Caption = 'Altura'
+      ParentShowHint = False
+      ShowHint = False
+    end
+    object Label7: TLabel
+      AlignWithMargins = True
+      Left = 152
+      Top = 128
+      Width = 134
+      Height = 13
+      Caption = 'Espa'#231'amento Entre Colunas'
+      ParentShowHint = False
+      ShowHint = False
+    end
+    object Label8: TLabel
+      AlignWithMargins = True
+      Left = 96
+      Top = 80
+      Width = 125
+      Height = 13
+      Caption = 'Definir Unidade de Medida'
+      ParentShowHint = False
+      ShowHint = False
+    end
+    object label9: TLabel
+      Left = 8
+      Top = 187
+      Width = 79
+      Height = 12
+      Caption = 'Tipo Imprenssao'
+      ParentShowHint = False
+      ShowHint = False
+    end
+    object BtnExcel: TButton
+      Left = 16
+      Top = 256
+      Width = 121
+      Height = 28
+      Anchors = [akTop]
+      Caption = 'Exportar Para Excel'
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 0
+      OnClick = BtnExcelClick
+    end
+    object BtnGerarEtiqueta: TButton
+      AlignWithMargins = True
+      Left = 160
+      Top = 256
+      Width = 121
+      Height = 28
+      Anchors = [akTop]
+      Caption = 'Gerar Etiqueta'
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 1
+      OnClick = BtnGerarEtiquetaClick
+    end
+    object cbTipoImpressao: TComboBox
+      Left = 8
+      Top = 208
+      Width = 140
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 2
+    end
+    object cbUnidade: TComboBox
+      Left = 96
+      Top = 96
+      Width = 145
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 3
+      Items.Strings = (
+        'Polegadas')
+    end
+    object edtAltura: TEdit
+      AlignWithMargins = True
+      Left = 80
+      Top = 152
+      Width = 57
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 4
+    end
+    object edtCodigo: TEdit
+      AlignWithMargins = True
+      Left = 8
+      Top = 40
+      Width = 121
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 5
+    end
+    object edtColuna: TEdit
+      AlignWithMargins = True
+      Left = 8
+      Top = 96
+      Width = 65
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 6
+    end
+    object edtEspacamento: TEdit
+      Left = 152
+      Top = 152
+      Width = 151
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 7
+    end
+    object edtLargura: TEdit
+      AlignWithMargins = True
+      Left = 8
+      Top = 152
+      Width = 65
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 8
+    end
+    object edtQuantidade: TEdit
+      AlignWithMargins = True
+      Left = 180
+      Top = 40
+      Width = 85
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 9
+    end
+    object rgFormatoExportacao: TRadioGroup
+      Left = 160
+      Top = 184
+      Width = 138
+      Height = 64
+      Caption = 'rgFormatoExportacao'
+      Items.Strings = (
+        'CSV (Texto)'
+        'XLS (Excel Organizado)')
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 10
+    end
   end
   object Conexao: TFDConnection
     Params.Strings = (
@@ -716,7 +758,7 @@ object GeradorEtiquetas: TGeradorEtiquetas
       '    ON P.au_ite = I.CodReduzido'
       'ORDER BY'
       '    P.au_ite')
-    Left = 96
+    Left = 80
     Top = 24
   end
   object mtEtiquetas: TFDMemTable
