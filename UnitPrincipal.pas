@@ -52,10 +52,10 @@ type
     cbTipoImpressao: TComboBox;
     ppDBText2: TppDBText;
     ppDBText3: TppDBText;
+    rgFormatoExportacao: TRadioGroup;
     ppLabel1: TppLabel;
     ppDBText1: TppDBText;
     ppLabel2: TppLabel;
-    FormatoExportacao: TRadioGroup;
     procedure BtnGerarEtiquetaClick(Sender: TObject);
     procedure BtnExcelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -160,11 +160,13 @@ var
   LinhaDados: string;
   I: Integer;
   FieldValue: string;
+  // DECLARAÇÃO CORRETA DA VARIÁVEL
   UseXLSFormat: Boolean;
 const
-  CSV_SEPARATOR = #9; // Usaremos TAB (#9) para CSV/TXT
+  CSV_SEPARATOR = #9;
 begin
-  // Assume que rgFormatoExportacao está com 2 itens (0=CSV/TXT, 1=XLS/HTML)
+  // --- INICIALIZAÇÃO CORRETA DA VARIÁVEL ---
+  // Assumindo que 1 é o índice para o formato XLS (organizado)
   UseXLSFormat := (rgFormatoExportacao.ItemIndex = 1);
 
   SaveDialog := TSaveDialog.Create(nil);
@@ -177,7 +179,7 @@ begin
       SaveDialog.DefaultExt := 'xls';
     end else begin
       // --- EXPORTAÇÃO CSV/TXT (TAB SEPARADO) ---
-      SaveDialog.Filter := 'Arquivo Excel CSV (*.csv)|*.csv';
+      SaveDialog.Filter := 'Arquivo de Texto (*.txt)|*.txt|Arquivo Excel CSV (*.csv)|*.csv';
       SaveDialog.DefaultExt := 'txt';
     end;
 
@@ -244,7 +246,6 @@ begin
     TempList.Free;
   end;
 end;
-
 procedure TGeradorEtiquetas.FormCreate(Sender: TObject);
 var
   I: Integer;

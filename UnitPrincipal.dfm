@@ -1,7 +1,6 @@
 object GeradorEtiquetas: TGeradorEtiquetas
   Left = 0
   Top = 0
-  Caption = 'GeradorEtiquetas'
   ClientHeight = 379
   ClientWidth = 690
   Color = clBtnFace
@@ -323,12 +322,12 @@ object GeradorEtiquetas: TGeradorEtiquetas
     Height = 21
     TabOrder = 11
   end
-  object FormatoExportacao: TRadioGroup
+  object rgFormatoExportacao: TRadioGroup
     Left = 176
     Top = 248
     Width = 138
     Height = 59
-    Caption = 'FormatoExportacao'
+    Caption = 'rgFormatoExportacao'
     Items.Strings = (
       'CSV (Texto)'
       'XLS (Excel Organizado)')
