@@ -296,7 +296,6 @@ object GeradorEtiquetas: TGeradorEtiquetas
     Height = 21
     TabOrder = 8
     Items.Strings = (
-      'Milimetros'
       'Polegadas')
   end
   object edtEspacamento: TEdit
