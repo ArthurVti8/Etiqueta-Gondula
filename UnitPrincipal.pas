@@ -17,7 +17,7 @@ uses
 
 type
   TGeradorEtiquetas = class(TForm)
-    FDConnection1: TFDConnection;
+    Conexao: TFDConnection;
     DBGrid1: TDBGrid;
     DataSource1: TDataSource;
     ppDBPipeline1: TppDBPipeline;

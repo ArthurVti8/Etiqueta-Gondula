@@ -333,7 +333,7 @@ object GeradorEtiquetas: TGeradorEtiquetas
       'XLS (Excel Organizado)')
     TabOrder = 12
   end
-  object FDConnection1: TFDConnection
+  object Conexao: TFDConnection
     Params.Strings = (
       'Database=APT'
       'User_Name=sa'
@@ -685,7 +685,7 @@ object GeradorEtiquetas: TGeradorEtiquetas
     DetailFields = 
       'AliquotaICMS;CodigoProduto;CodigoUnidade;CST_Saida;Descricao;NCM' +
       '_Imposto;PrecoMaximo;PrecoMinimo;Tipo'
-    Connection = FDConnection1
+    Connection = Conexao
     ResourceOptions.AssignedValues = [rvParamCreate, rvParamExpand, rvCmdExecMode, rvDirectExecute]
     ResourceOptions.DirectExecute = True
     UpdateOptions.AssignedValues = [uvUpdateChngFields, uvUpdateMode, uvLockMode, uvLockPoint, uvLockWait, uvRefreshMode, uvFetchGeneratorsPoint, uvCheckRequired, uvCheckReadOnly, uvCheckUpdatable]
@@ -717,7 +717,7 @@ object GeradorEtiquetas: TGeradorEtiquetas
       '    ON P.au_ite = I.CodReduzido'
       'ORDER BY'
       '    P.au_ite')
-    Left = 96
+    Left = 80
     Top = 24
   end
 end
