@@ -719,4 +719,15 @@ object GeradorEtiquetas: TGeradorEtiquetas
     Left = 96
     Top = 24
   end
+  object mtEtiquetas: TFDMemTable
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    Left = 216
+    Top = 24
+  end
 end

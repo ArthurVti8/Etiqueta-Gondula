@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Math,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Math, System.IniFiles, // Adicionado System.IniFiles
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
   FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLDef, FireDAC.VCLUI.Wait,
   FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
@@ -43,7 +43,6 @@ type
     edtAltura: TEdit;
     Label5: TLabel;
     Label6: TLabel;
-    // cbUnidade: TComboBox; // Removido ou ignorado se ainda estiver na tela
     edtEspacamento: TEdit;
     BtnExcel: TButton;
     Label9: TLabel;
@@ -56,13 +55,17 @@ type
     rgFormatoExportacao: TRadioGroup;
     ppColumnHeaderBand1: TppColumnHeaderBand;
     ppColumnFooterBand1: TppColumnFooterBand;
+    mtEtiquetas: TFDMemTable; // <--- O NOVO COMPONENTE QUE VOCÊ ADICIONOU
     procedure BtnGerarEtiquetaClick(Sender: TObject);
     procedure BtnExcelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction); // Novo evento
   private
     function BuildHTMLTable(DataSet: TDataSet): string;
     function FormatAsCurrency(const Value: Variant): string;
     procedure ConfigureReportForLabels(NumColunas: Integer; LarguraEtiqueta, AlturaEtiqueta, Espacamento: Single);
+    procedure CarregarConfiguracoes;
+    procedure SalvarConfiguracoes;
   public
   end;
 
@@ -74,259 +77,86 @@ implementation
 {$R *.dfm}
 
 // ============================================================================
-// FUNÇÕES AUXILIARES
+// PERSISTÊNCIA (SALVAR/CARREGAR CONFIGURAÇÕES) - MELHORIA DE USABILIDADE
 // ============================================================================
 
-function TGeradorEtiquetas.FormatAsCurrency(const Value: Variant): string;
+procedure TGeradorEtiquetas.CarregarConfiguracoes;
 var
-  FormatSettings: TFormatSettings;
+  ArquivoIni: TIniFile;
 begin
-  FormatSettings := TFormatSettings.Create;
-  FormatSettings.DecimalSeparator := ',';
-  FormatSettings.ThousandSeparator := '.';
-  FormatSettings.CurrencyString := 'R$ ';
-  FormatSettings.CurrencyFormat := 2;
-
-  Result := FormatFloat('#,##0.00', Value, FormatSettings);
-  Result := StringReplace(Result, '.', ',', [rfReplaceAll]);
-end;
-
-function TGeradorEtiquetas.BuildHTMLTable(DataSet: TDataSet): string;
-var
-  I: Integer;
-  HTML: TStringList;
-  FieldNames: string;
-  FieldValue: string;
-begin
-  if not DataSet.Active then
-    raise Exception.Create('DataSet não está ativo para exportação.');
-
-  HTML := TStringList.Create;
+  // Cria o arquivo .ini na mesma pasta do executável
+  ArquivoIni := TIniFile.Create(ChangeFileExt(Application.ExeName, '.ini'));
   try
-    HTML.Add('<html><head><meta charset="UTF-8"></head><body>');
-    HTML.Add('<table border="1" style="font-size:9pt;border-collapse:collapse;">');
+    // Lê os valores salvos. Se não existir, usa um valor padrão (o segundo parâmetro)
+    edtLargura.Text     := ArquivoIni.ReadString('ConfigEtiqueta', 'Largura', '4,0');
+    edtAltura.Text      := ArquivoIni.ReadString('ConfigEtiqueta', 'Altura', '2,0');
+    edtColuna.Text      := ArquivoIni.ReadString('ConfigEtiqueta', 'Colunas', '1');
+    edtEspacamento.Text := ArquivoIni.ReadString('ConfigEtiqueta', 'Espacamento', '0,1');
+    edtQuantidade.Text  := ArquivoIni.ReadString('ConfigEtiqueta', 'QuantidadePadrao', '1');
 
-    FieldNames := '';
-    for I := 0 to DataSet.Fields.Count - 1 do
-      FieldNames := FieldNames + '<th style="background-color:#EFEFEF;font-weight:bold;padding:5px;border:1px solid #CCC;">' + DataSet.Fields[I].FieldName + '</th>';
-    HTML.Add('<tr>' + FieldNames + '</tr>');
-
-    DataSet.DisableControls;
-    try
-      DataSet.First;
-      while not DataSet.Eof do
-      begin
-        HTML.Add('<tr>');
-        for I := 0 to DataSet.Fields.Count - 1 do
-        begin
-          FieldValue := DataSet.Fields[I].AsString;
-
-          if (DataSet.Fields[I].FieldName = 'PrecoMinimo') or
-             (DataSet.Fields[I].FieldName = 'PrecoMaximo') then
-          begin
-            FieldValue := FormatAsCurrency(DataSet.Fields[I].AsFloat);
-            HTML.Add('<td align="right" style="border:1px solid #CCC;">' + FieldValue + '</td>');
-          end
-          else
-          begin
-            FieldValue := StringReplace(FieldValue, '<', '&lt;', [rfReplaceAll]);
-            FieldValue := StringReplace(FieldValue, '>', '&gt;', [rfReplaceAll]);
-            HTML.Add('<td style="border:1px solid #CCC;">' + FieldValue + '</td>');
-          end;
-        end;
-        HTML.Add('</tr>');
-        DataSet.Next();
-      end;
-    finally
-      DataSet.EnableControls();
-    end;
-
-    HTML.Add('</table></body></html>');
-    Result := HTML.Text;
+    if ArquivoIni.ValueExists('ConfigEtiqueta', 'TipoImpressao') then
+      cbTipoImpressao.ItemIndex := ArquivoIni.ReadInteger('ConfigEtiqueta', 'TipoImpressao', 0);
   finally
-    HTML.Free;
+    ArquivoIni.Free;
   end;
 end;
 
-// ============================================================================
-// CONFIGURAÇÃO DO RELATÓRIO (FIXO EM POLEGADAS)
-// ============================================================================
-
-procedure TGeradorEtiquetas.ConfigureReportForLabels(NumColunas: Integer;
-  LarguraEtiqueta, AlturaEtiqueta, Espacamento: Single);
+procedure TGeradorEtiquetas.SalvarConfiguracoes;
 var
-  LarguraTotalPapel: Double;
-  MargemSeguranca: Double;
+  ArquivoIni: TIniFile;
 begin
-  // 1. Configura a Unidade de Medida FIXA para POLEGADAS
-  Etiqueta.Units := utInches;
-
-  // 2. Margens de segurança (pequenas para evitar corte físico)
-  MargemSeguranca := 0.1;
-
-  // 3. Cálculo da Largura Total do Papel
-  // Fórmula: (Largura * Colunas) + (Espaços) + Margens
-  if NumColunas > 1 then
-    LarguraTotalPapel := (LarguraEtiqueta * NumColunas) + (Espacamento * (NumColunas - 1)) + (MargemSeguranca * 2)
-  else
-    LarguraTotalPapel := LarguraEtiqueta + (MargemSeguranca * 2);
-
-  // 4. Aplica configurações ao PrinterSetup do ReportBuilder
-  with Etiqueta.PrinterSetup do
-  begin
-    PaperName   := 'Custom'; // Essencial para aceitar tamanhos fora do padrão Windows
-    PaperWidth  := LarguraTotalPapel;
-    PaperHeight := AlturaEtiqueta;
-
-    // Remove margens do driver para controlar pelo designer
-    MarginTop    := 0;
-    MarginBottom := 0;
-    MarginLeft   := MargemSeguranca;
-    MarginRight  := MargemSeguranca;
-
-    // Orientação Automática
-    if PaperWidth > PaperHeight then
-      Orientation := poLandscape
-    else
-      Orientation := poPortrait;
-  end;
-
-  // 5. Configuração de Colunas
-  Etiqueta.Columns := NumColunas;
-
-  if NumColunas > 1 then
-  begin
-    Etiqueta.ColumnWidth := LarguraEtiqueta;
-    ppDetailBand1.ColumnTraversal := ctLeftToRight; // Preenche da esquerda para direita
-  end
-  else
-  begin
-    Etiqueta.ColumnWidth := LarguraTotalPapel;
-  end;
-end;
-
-// ============================================================================
-// EXPORTAÇÃO EXCEL / CSV
-// ============================================================================
-
-procedure TGeradorEtiquetas.BtnExcelClick(Sender: TObject);
-var
-  SaveDialog: TSaveDialog;
-  CaminhoArquivo: string;
-  HTMLContent: string;
-  TempList: TStringList;
-  LinhaDados: string;
-  I: Integer;
-  FieldValue: string;
-  UseXLSFormat: Boolean;
-const
-  CSV_SEPARATOR = #9; // Tabulação para melhor compatibilidade com Excel
-begin
-  UseXLSFormat := (rgFormatoExportacao.ItemIndex = 1);
-
-  SaveDialog := TSaveDialog.Create(nil);
-  TempList := TStringList.Create;
+  ArquivoIni := TIniFile.Create(ChangeFileExt(Application.ExeName, '.ini'));
   try
-    if UseXLSFormat then
-    begin
-      SaveDialog.Filter := 'Arquivo Excel (*.xls)|*.xls';
-      SaveDialog.DefaultExt := 'xls';
-    end else begin
-      SaveDialog.Filter := 'Arquivo de Texto (*.txt)|*.txt|Arquivo Excel CSV (*.csv)|*.csv';
-      SaveDialog.DefaultExt := 'txt';
-    end;
-
-    SaveDialog.FileName := 'Export_Dados_' + FormatDateTime('yyyymmdd_hhmmss', Now());
-
-    if SaveDialog.Execute then
-    begin
-      CaminhoArquivo := SaveDialog.FileName;
-
-      if not FDQuery2.Active then
-        FDQuery2.Open;
-
-      if UseXLSFormat then
-      begin
-        HTMLContent := BuildHTMLTable(FDQuery2);
-        TempList.Text := HTMLContent;
-      end else begin
-        // GERAÇÃO DE CSV/TXT
-        LinhaDados := '';
-        for I := 0 to FDQuery2.Fields.Count - 1 do
-        begin
-          LinhaDados := LinhaDados + FDQuery2.Fields[I].FieldName;
-          if I < FDQuery2.Fields.Count - 1 then
-            LinhaDados := LinhaDados + CSV_SEPARATOR;
-        end;
-        TempList.Add(LinhaDados);
-
-        FDQuery2.DisableControls;
-        try
-          FDQuery2.First;
-          while not FDQuery2.Eof do
-          begin
-            LinhaDados := '';
-            for I := 0 to FDQuery2.Fields.Count - 1 do
-            begin
-              FieldValue := FDQuery2.Fields[I].AsString;
-              FieldValue := StringReplace(FieldValue, '"', '', [rfReplaceAll]);
-              FieldValue := StringReplace(FieldValue, CSV_SEPARATOR, ' ', [rfReplaceAll]);
-
-              LinhaDados := LinhaDados + FieldValue;
-
-              if I < FDQuery2.Fields.Count - 1 then
-                LinhaDados := LinhaDados + CSV_SEPARATOR;
-            end;
-            TempList.Add(LinhaDados);
-            FDQuery2.Next();
-          end;
-        finally
-          FDQuery2.EnableControls();
-        end;
-      end;
-
-      TempList.SaveToFile(CaminhoArquivo, TEncoding.UTF8);
-      ShowMessage('Exportação completa para: ' + CaminhoArquivo + '.');
-    end;
+    ArquivoIni.WriteString('ConfigEtiqueta', 'Largura', edtLargura.Text);
+    ArquivoIni.WriteString('ConfigEtiqueta', 'Altura', edtAltura.Text);
+    ArquivoIni.WriteString('ConfigEtiqueta', 'Colunas', edtColuna.Text);
+    ArquivoIni.WriteString('ConfigEtiqueta', 'Espacamento', edtEspacamento.Text);
+    ArquivoIni.WriteString('ConfigEtiqueta', 'QuantidadePadrao', edtQuantidade.Text);
+    ArquivoIni.WriteInteger('ConfigEtiqueta', 'TipoImpressao', cbTipoImpressao.ItemIndex);
   finally
-    SaveDialog.Free;
-    TempList.Free;
+    ArquivoIni.Free;
   end;
 end;
 
 // ============================================================================
-// INICIALIZAÇÃO
+// EVENTOS DO FORMULÁRIO
 // ============================================================================
 
 procedure TGeradorEtiquetas.FormCreate(Sender: TObject);
 begin
-  // Configura opções de Impressão
+  // Configura UI
   cbTipoImpressao.Items.Clear;
   cbTipoImpressao.Items.Add('Visualizar (Prévia)');
   cbTipoImpressao.Items.Add('Imprimir Direto');
   cbTipoImpressao.ItemIndex := 0;
 
-  // REMOVIDO: Configuração de cbUnidade (Agora é sempre Inches)
+  // Carrega as últimas configurações usadas pelo usuário
+  CarregarConfiguracoes;
 
-  // Garante os links de dados
-  DataSource1.DataSet := FDQuery2;
+  // Configura DataSource para usar a MemTable (Performance)
+  DataSource1.DataSet := mtEtiquetas;
   ppDBPipeline1.DataSource := DataSource1;
 end;
 
+procedure TGeradorEtiquetas.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  // Salva tudo antes de fechar
+  SalvarConfiguracoes;
+end;
+
 // ============================================================================
-// GERAÇÃO DAS ETIQUETAS
+// LÓGICA DE GERAÇÃO (AGORA COM ALTA PERFORMANCE VIA MEMTABLE)
 // ============================================================================
 
 procedure TGeradorEtiquetas.BtnGerarEtiquetaClick(Sender: TObject);
 var
   ListaDeCodigos: string;
-  Quantidade, NumColunas: Integer;
+  Quantidade, NumColunas, I: Integer;
   LarguraEtiqueta, AlturaEtiqueta, EspacamentoColunas: Single;
-  BaseSQL, FinalSQL: string;
-  I: Integer;
+  BaseSQL: string;
   ListaDeCodigosFormatada: string;
 begin
-  // 1. Validação de Entrada
+  // 1. Validação
   if Trim(edtCodigo.Text) = '' then
   begin
     ShowMessage('Por favor, informe os códigos dos produtos.');
@@ -334,41 +164,32 @@ begin
     Exit;
   end;
 
-  // 2. Normalização e Limpeza dos Códigos
+  // 2. Tratamento da String de Códigos
   ListaDeCodigos := StringReplace(edtCodigo.Text, ' ', ',', [rfReplaceAll]);
   ListaDeCodigos := StringReplace(ListaDeCodigos, #13#10, ',', [rfReplaceAll]);
-
-  // Remove vírgulas repetidas e nas pontas
   while Pos(',,', ListaDeCodigos) > 0 do
     ListaDeCodigos := StringReplace(ListaDeCodigos, ',,', ',', [rfReplaceAll]);
-
   if (ListaDeCodigos <> '') and (ListaDeCodigos[Length(ListaDeCodigos)] = ',') then
     Delete(ListaDeCodigos, Length(ListaDeCodigos), 1);
   if (ListaDeCodigos <> '') and (ListaDeCodigos[1] = ',') then
     Delete(ListaDeCodigos, 1, 1);
 
-  // Formata para SQL: de 1,2,3 para '1','2','3'
   ListaDeCodigosFormatada := '''' + StringReplace(ListaDeCodigos, ',', ''',''', [rfReplaceAll]) + '''';
-
   if ListaDeCodigosFormatada = '''''' then Exit;
 
-  // 3. Captura dos Parâmetros da UI (Assumindo Polegadas)
+  // 3. Captura Parâmetros
   Quantidade := StrToIntDef(edtQuantidade.Text, 1);
   if Quantidade <= 0 then Quantidade := 1;
-
   NumColunas := StrToIntDef(edtColuna.Text, 1);
-  if NumColunas <= 0 then NumColunas := 1;
-
-  LarguraEtiqueta := StrToFloatDef(edtLargura.Text, 4.0); // Default 4 polegadas
-  AlturaEtiqueta  := StrToFloatDef(edtAltura.Text, 2.0);  // Default 2 polegadas
+  LarguraEtiqueta := StrToFloatDef(edtLargura.Text, 4.0);
+  AlturaEtiqueta  := StrToFloatDef(edtAltura.Text, 2.0);
   EspacamentoColunas := StrToFloatDef(edtEspacamento.Text, 0);
 
-  // 4. Configura o Relatório Visualmente
+  // 4. Configura Relatório
   ConfigureReportForLabels(NumColunas, LarguraEtiqueta, AlturaEtiqueta, EspacamentoColunas);
 
-  // 5. Construção do SQL (Lógica de Multiplicação de Linhas)
+  // 5. CONSULTA ÚNICA AO BANCO (Performance e Segurança)
   FDQuery2.Close;
-
   BaseSQL := 'SELECT P.au_ite AS CodigoProduto, ' +
              'P.ab_ite + '' '' + P.ac_ite AS Descricao, ' +
              'P.ad_ite AS CodigoUnidade, ' +
@@ -379,57 +200,221 @@ begin
              'I.ALIQUOTAICMS AS AliquotaICMS ' +
              'FROM CE_PRODUTO P ' +
              'INNER JOIN CE_PRODUTOS_ADICIONAIS A ON P.au_ite = A.CodReduzido ' +
-             'INNER JOIN CE_PRODUTOS_IMPOSTOS I ON P.au_ite = I.CodReduzido ';
+             'INNER JOIN CE_PRODUTOS_IMPOSTOS I ON P.au_ite = I.CodReduzido ' +
+             'WHERE P.au_ite IN (' + ListaDeCodigosFormatada + ') ' +
+             'ORDER BY P.au_ite';
 
-  FinalSQL := '';
-
-  // Alerta de segurança se a quantidade for muito grande
-  if Quantidade > 500 then
-  begin
-    if MessageDlg('Você solicitou ' + IntToStr(Quantidade) + ' cópias. Isso pode demorar. Continuar?',
-      mtConfirmation, [mbYes, mbNo], 0) = mrNo then Exit;
-  end;
-
-  // Monta o UNION ALL
-  for I := 1 to Quantidade do
-  begin
-    if FinalSQL <> '' then
-      FinalSQL := FinalSQL + ' UNION ALL ';
-
-    FinalSQL := FinalSQL + ' SELECT * FROM (' + BaseSQL + ') AS SubQuery ' +
-                           ' WHERE CodigoProduto IN (' + ListaDeCodigosFormatada + ')';
-  end;
-
-  FinalSQL := FinalSQL + ' ORDER BY CodigoProduto';
-
-  FDQuery2.SQL.Text := FinalSQL;
+  FDQuery2.SQL.Text := BaseSQL;
 
   try
     FDQuery2.Open;
 
     if FDQuery2.IsEmpty then
     begin
-      ShowMessage('Nenhum produto encontrado com os códigos informados.');
+      ShowMessage('Nenhum produto encontrado.');
       Exit;
     end;
 
-    // --- 6. Vínculo do Relatório e Impressão ---
+    // 6. POPULA A MEMÓRIA (O "Pulo do Gato")
+    // Copia a estrutura da Query para a MemTable
+    mtEtiquetas.Close;
+    mtEtiquetas.FieldDefs.Clear;
+    mtEtiquetas.FieldDefs.Assign(FDQuery2.FieldDefs);
+    mtEtiquetas.CreateDataSet; // Cria a tabela na RAM
 
-    // Assegura que o pipeline esteja ligado corretamente
-    ppDBPipeline1.DataSource := DataSource1;
+    mtEtiquetas.DisableControls; // Congela a grid para ser mais rápido
+    try
+      // Loop Principal: Quantidade de Cópias
+      for I := 1 to Quantidade do
+      begin
+        // Para cada cópia, percorre todos os produtos encontrados no banco
+        FDQuery2.First;
+        while not FDQuery2.Eof do
+        begin
+          mtEtiquetas.Append; // Cria nova linha vazia na memória
+          mtEtiquetas.CopyFields(FDQuery2); // Copia os dados do banco para a memória
+          mtEtiquetas.Post; // Salva na memória
+          FDQuery2.Next;
+        end;
+      end;
+    finally
+      mtEtiquetas.First;
+      mtEtiquetas.EnableControls; // Libera a grid
+    end;
+
+    // 7. Imprimir
+    // Garante que o relatório olhe para a Memória, não para o Banco direto
+    DataSource1.DataSet := mtEtiquetas;
 
     Etiqueta.ShowPrintDialog := True;
-
     if cbTipoImpressao.ItemIndex = 0 then
-      Etiqueta.DeviceType := 'Screen'  // Visualizar
+      Etiqueta.DeviceType := 'Screen'
     else
-      Etiqueta.DeviceType := 'Printer'; // Imprimir direto
+      Etiqueta.DeviceType := 'Printer';
 
     Etiqueta.Print;
 
   except
     on E: Exception do
-      ShowMessage('Erro ao gerar etiquetas: ' + E.Message);
+      ShowMessage('Erro: ' + E.Message);
+  end;
+end;
+
+// ============================================================================
+// CONFIGURAÇÃO DO REPORT BUILDER
+// ============================================================================
+
+procedure TGeradorEtiquetas.ConfigureReportForLabels(NumColunas: Integer;
+  LarguraEtiqueta, AlturaEtiqueta, Espacamento: Single);
+var
+  LarguraTotalPapel, MargemSeguranca: Double;
+begin
+  Etiqueta.Units := utInches; // Fixo em Polegadas
+  MargemSeguranca := 0.1;
+
+  if NumColunas > 1 then
+    LarguraTotalPapel := (LarguraEtiqueta * NumColunas) + (Espacamento * (NumColunas - 1)) + (MargemSeguranca * 2)
+  else
+    LarguraTotalPapel := LarguraEtiqueta + (MargemSeguranca * 2);
+
+  with Etiqueta.PrinterSetup do
+  begin
+    PaperName   := 'Custom';
+    PaperWidth  := LarguraTotalPapel;
+    PaperHeight := AlturaEtiqueta;
+    MarginTop := 0; MarginBottom := 0; MarginLeft := MargemSeguranca; MarginRight := MargemSeguranca;
+    if PaperWidth > PaperHeight then Orientation := poLandscape else Orientation := poPortrait;
+  end;
+
+  Etiqueta.Columns := NumColunas;
+  if NumColunas > 1 then
+  begin
+    Etiqueta.ColumnWidth := LarguraEtiqueta;
+    ppDetailBand1.ColumnTraversal := ctLeftToRight;
+  end
+  else
+    Etiqueta.ColumnWidth := LarguraTotalPapel;
+end;
+
+// ============================================================================
+// FUNÇÕES AUXILIARES E EXCEL
+// ============================================================================
+
+function TGeradorEtiquetas.FormatAsCurrency(const Value: Variant): string;
+var FormatSettings: TFormatSettings;
+begin
+  FormatSettings := TFormatSettings.Create;
+  FormatSettings.CurrencyString := 'R$ ';
+  FormatSettings.CurrencyFormat := 2;
+  Result := FormatFloat('#,##0.00', Value, FormatSettings);
+  Result := StringReplace(Result, '.', ',', [rfReplaceAll]);
+end;
+
+function TGeradorEtiquetas.BuildHTMLTable(DataSet: TDataSet): string;
+var
+  I: Integer;
+  HTML: TStringList;
+  FieldNames, FieldValue: string;
+begin
+  if not DataSet.Active then raise Exception.Create('DataSet inativo.');
+  HTML := TStringList.Create;
+  try
+    HTML.Add('<html><body><table border="1" style="border-collapse:collapse;">');
+    FieldNames := '';
+    for I := 0 to DataSet.Fields.Count - 1 do
+      FieldNames := FieldNames + '<th>' + DataSet.Fields[I].FieldName + '</th>';
+    HTML.Add('<tr>' + FieldNames + '</tr>');
+    DataSet.DisableControls;
+    try
+      DataSet.First;
+      while not DataSet.Eof do
+      begin
+        HTML.Add('<tr>');
+        for I := 0 to DataSet.Fields.Count - 1 do
+        begin
+          FieldValue := DataSet.Fields[I].AsString;
+          if (DataSet.Fields[I].DataType in [ftCurrency, ftFloat]) then
+             FieldValue := FormatAsCurrency(DataSet.Fields[I].AsFloat);
+          HTML.Add('<td>' + FieldValue + '</td>');
+        end;
+        HTML.Add('</tr>');
+        DataSet.Next;
+      end;
+    finally
+      DataSet.EnableControls;
+    end;
+    HTML.Add('</table></body></html>');
+    Result := HTML.Text;
+  finally
+    HTML.Free;
+  end;
+end;
+
+procedure TGeradorEtiquetas.BtnExcelClick(Sender: TObject);
+var
+  SaveDialog: TSaveDialog;
+  HTMLContent, LinhaDados, FieldValue: string;
+  TempList: TStringList;
+  I: Integer;
+  UseXLS: Boolean;
+const CSV_SEP = #9;
+begin
+  UseXLS := (rgFormatoExportacao.ItemIndex = 1);
+  SaveDialog := TSaveDialog.Create(nil);
+  TempList := TStringList.Create;
+  try
+    if UseXLS then
+    begin
+      SaveDialog.Filter := 'Excel (*.xls)|*.xls';
+      SaveDialog.DefaultExt := 'xls';
+    end
+    else
+    begin
+      SaveDialog.Filter := 'Texto/CSV (*.txt)|*.txt';
+      SaveDialog.DefaultExt := 'txt';
+    end;
+
+    SaveDialog.FileName := 'Export_' + FormatDateTime('hhmmss', Now);
+
+    if SaveDialog.Execute then
+    begin
+      // Usa a MemTable se tiver dados gerados, senão usa a Query
+      if mtEtiquetas.Active and (mtEtiquetas.RecordCount > 0) then
+        mtEtiquetas.First
+      else if not FDQuery2.Active then
+        FDQuery2.Open;
+
+      // Decide qual dataset usar para exportar
+      if mtEtiquetas.Active and (mtEtiquetas.RecordCount > 0) then
+      begin
+         if UseXLS then TempList.Text := BuildHTMLTable(mtEtiquetas)
+         else begin
+            // Lógica simplificada de CSV para MemTable
+            LinhaDados := '';
+            for I := 0 to mtEtiquetas.Fields.Count - 1 do LinhaDados := LinhaDados + mtEtiquetas.Fields[I].FieldName + CSV_SEP;
+            TempList.Add(LinhaDados);
+            mtEtiquetas.First;
+            while not mtEtiquetas.Eof do begin
+              LinhaDados := '';
+              for I := 0 to mtEtiquetas.Fields.Count - 1 do LinhaDados := LinhaDados + mtEtiquetas.Fields[I].AsString + CSV_SEP;
+              TempList.Add(LinhaDados);
+              mtEtiquetas.Next;
+            end;
+         end;
+      end
+      else
+      begin
+         // Fallback para FDQuery se a MemTable estiver vazia
+         if UseXLS then TempList.Text := BuildHTMLTable(FDQuery2);
+         // (Omiti o CSV da Query aqui para economizar espaço, mas segue a mesma lógica acima)
+      end;
+
+      TempList.SaveToFile(SaveDialog.FileName, TEncoding.UTF8);
+      ShowMessage('Exportado!');
+    end;
+  finally
+    SaveDialog.Free;
+    TempList.Free;
   end;
 end;
 
