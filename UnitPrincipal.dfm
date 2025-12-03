@@ -251,7 +251,7 @@ object GeradorEtiquetas: TGeradorEtiquetas
       Left = 8
       Top = 187
       Width = 79
-      Height = 12
+      Height = 13
       Caption = 'Tipo Imprenssao'
       ParentShowHint = False
       ShowHint = False
