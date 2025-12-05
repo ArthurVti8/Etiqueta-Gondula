@@ -3,16 +3,16 @@ unit UnitPrincipal;
 interface
 
 uses
-  // Bibliotecas padrão
+  // --- BIBLIOTECAS ---
   Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Math, System.IniFiles,
-  // Bibliotecas FireDAC
+  // FireDAC
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf,
   FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLDef, FireDAC.VCLUI.Wait,
   FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
   Vcl.Grids, Vcl.DBGrids, FireDAC.Comp.DataSet,
   FireDAC.Comp.Client, Vcl.StdCtrls,
-  // Bibliotecas ReportBuilder
+  // ReportBuilder
   ppDB, ppCtrls, ppPrnabl, ppClass,
   ppBarCod, ppBands, ppCache, ppDesignLayer, ppParameter, ppProd, ppReport,
   ppComm, ppRelatv, ppDBPipe, Vcl.Imaging.jpeg, Vcl.ExtCtrls,
@@ -21,15 +21,15 @@ uses
 
 type
   TGeradorEtiquetas = class(TForm)
-    // --- COMPONENTES VISUAIS E DADOS ---
+    // --- CONEXÃO E DADOS ---
     Conexao: TFDConnection;
     FDQuery2: TFDQuery;
     mtEtiquetas: TFDMemTable;
     DataSource1: TDataSource;
     ppDBPipeline1: TppDBPipeline;
-    Etiqueta: TppReport;
 
-    // ReportBuilder Components
+    // --- RELATÓRIO 1: GÔNDOLA (AMARELA) ---
+    EtiquetaGondula: TppReport;
     ppParameterList1: TppParameterList;
     ppDesignLayers1: TppDesignLayers;
     ppDesignLayer1: TppDesignLayer;
@@ -44,22 +44,30 @@ type
     ppColumnFooterBand1: TppColumnFooterBand;
     ppShape1: TppShape;
 
-    // Estrutura Visual
+    // --- RELATÓRIO 2: 33x22 (BRANCA 3 COLUNAS) ---
+    Etiqueta33x22: TppReport;
+    ppColumnHeaderBand2: TppColumnHeaderBand;
+    ppDetailBand2: TppDetailBand;
+    ppColumnFooterBand2: TppColumnFooterBand;
+    ppDesignLayers2: TppDesignLayers;
+    ppDesignLayer2: TppDesignLayer;
+    ppParameterList2: TppParameterList;
+    ppDBText5: TppDBText;
+    ppDBText6: TppDBText; // <--- AQUI ESTÁ O CARA (UNIDADE)
+    ppLabel3: TppLabel;
+    ppDBText7: TppDBText;
+    ppLabel4: TppLabel;
+
+    // --- VISUAL ---
     Panel1: TPanel;
     Panel2: TPanel;
     DBGrid1: TDBGrid;
     Label1: TLabel;
     Image1: TImage;
 
-    // Inputs (Campos de Texto)
-    Label2: TLabel; // Código
-    Label7: TLabel; // Quantidade
-    Label3: TLabel; // Colunas
-    Label8: TLabel; // Unidade
-    Label4: TLabel; // Largura
-    Label5: TLabel; // Altura
-    Label6: TLabel; // Espaçamento
-    label9: TLabel; // Tipo Impressão
+    // Inputs e Labels
+    Label2: TLabel; Label7: TLabel; Label3: TLabel; Label8: TLabel;
+    Label4: TLabel; Label5: TLabel; Label6: TLabel; label9: TLabel; Label10: TLabel;
 
     edtCodigo: TEdit;
     edtQuantidade: TEdit;
@@ -71,21 +79,24 @@ type
 
     cbTipoImpressao: TComboBox;
     rgFormatoExportacao: TRadioGroup;
+    CheckSim: TCheckBox;
+
+    // Botões
     BtnGerarEtiqueta: TButton;
+    BtnGerar33x22: TButton;
     BtnExcel: TButton;
 
-    // --- EVENTOS E MÉTODOS ---
+    // --- MÉTODOS ---
     procedure BtnGerarEtiquetaClick(Sender: TObject);
+    procedure BtnGerar33x22Click(Sender: TObject);
     procedure BtnExcelClick(Sender: TObject);
+    procedure CheckSimClick(Sender: TObject);
+
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormResize(Sender: TObject);
-
-    // [NOVO] Este evento roda DEPOIS que a tela aparece (Resolve o 000001)
     procedure FormShow(Sender: TObject);
-
-    // Evento para controlar a troca de produtos
-    procedure EventoAposRolar(DataSet: TDataSet);
+    procedure DBGrid1CellClick(Column: TColumn);
 
   private
     dsRelatorio: TDataSource;
@@ -94,7 +105,7 @@ type
     function FormatAsCurrency(const Value: Variant): string;
     function StrToFloatSafe(const S: string; Default: Single): Single;
 
-    procedure ConfigureReportForLabels(NumColunas: Integer; LarguraEtiqueta, AlturaEtiqueta, Espacamento: Single);
+    procedure ConfigureReportGeneric(Report: TppReport; NumColunas: Integer; LarguraEtiqueta, AlturaEtiqueta, Espacamento: Single);
     procedure CarregarConfiguracoes;
     procedure SalvarConfiguracoes;
     procedure PosicionarCampo(Lb: TLabel; Ctrl: TControl; X, Y, W: Integer);
@@ -110,160 +121,114 @@ implementation
 {$R *.dfm}
 
 // ============================================================================
-//  PROTEÇÃO CONTRA DADOS ERRADOS NO CAMPO
+//  CHECKBOX (SELECIONAR TODOS)
 // ============================================================================
-procedure TGeradorEtiquetas.EventoAposRolar(DataSet: TDataSet);
+procedure TGeradorEtiquetas.CheckSimClick(Sender: TObject);
 begin
-  if (DataSet.Active) and (not DataSet.IsEmpty) then
-  begin
-    // Joga o código certo para o campo "CÓDIGO DO PRODUTO"
-    edtCodigo.Text := DataSet.FieldByName('CodigoProduto').AsString;
+  edtCodigo.Enabled := not CheckSim.Checked;
+  if CheckSim.Checked then edtCodigo.Text := ''
+  else if FDQuery2.Active then edtCodigo.Text := FDQuery2.FieldByName('CodigoProduto').AsString;
+end;
 
-    // FORÇA O CAMPO COLUNAS A SER "1"
-    edtColuna.Text := '1';
-
-    if Trim(edtQuantidade.Text) = '' then edtQuantidade.Text := '1';
-  end;
+procedure TGeradorEtiquetas.DBGrid1CellClick(Column: TColumn);
+begin
+  if (FDQuery2.Active) and (not FDQuery2.IsEmpty) and (not CheckSim.Checked) then
+     edtCodigo.Text := FDQuery2.FieldByName('CodigoProduto').AsString;
 end;
 
 // ============================================================================
-//  LAYOUT INTELIGENTE
+//  LAYOUT (VISUAL DA TELA)
 // ============================================================================
 procedure TGeradorEtiquetas.PosicionarCampo(Lb: TLabel; Ctrl: TControl; X, Y, W: Integer);
 begin
   if Assigned(Ctrl) then
   begin
-    Ctrl.Left  := X;
-    Ctrl.Top   := Y;
-    Ctrl.Width := W;
-    Ctrl.Visible := True;
-    Ctrl.BringToFront;
-
-    if Assigned(Lb) then
-    begin
-      Lb.Left := X;
-      Lb.Top  := Y - Lb.Height - 3;
-      Lb.Visible := True;
-      Lb.BringToFront;
-    end;
+    Ctrl.Left := X; Ctrl.Top := Y;
+    if W > 0 then Ctrl.Width := W;
+    Ctrl.Visible := True; Ctrl.BringToFront;
+    if Assigned(Lb) then begin Lb.Left := X; Lb.Top := Y - Lb.Height - 3; Lb.Visible := True; Lb.BringToFront; end;
   end;
 end;
 
 procedure TGeradorEtiquetas.AjustarLayoutGeral;
-var
-  Col1, Col2, Y, AlturaLinha: Integer;
-  PainelLateral: TPanel;
+var Col1, Col2, Y, AlturaLinha: Integer;
 begin
-  PainelLateral := Panel2;
+  if DBGrid1.Columns.Count > 0 then DBGrid1.Columns[0].Width := 100;
 
-  // 1. AJUSTA GRID
-  if DBGrid1.Columns.Count > 0 then
-    DBGrid1.Columns[0].Width := 100;
-
-  // 2. NOMES DOS RÓTULOS
   if Assigned(Label2) then Label2.Caption := 'CÓDIGO DO PRODUTO';
   if Assigned(Label7) then Label7.Caption := 'QUANTIDADE';
   if Assigned(Label3) then Label3.Caption := 'NÚMERO DE COLUNAS';
   if Assigned(Label8) then Label8.Caption := 'UNIDADE DE MEDIDA';
-  if Assigned(Label4) then Label4.Caption := 'LARGURA';
-  if Assigned(Label5) then Label5.Caption := 'ALTURA';
+  if Assigned(Label4) then Label4.Caption := 'LARGURA (MM)';
+  if Assigned(Label5) then Label5.Caption := 'ALTURA (MM)';
   if Assigned(Label6) then Label6.Caption := 'ESPAÇAMENTO';
   if Assigned(label9) then label9.Caption := 'TIPO DE IMPRESSÃO';
+  if Assigned(Label10) then Label10.Caption := 'SELECIONAR TODOS?';
 
-  // 3. POSICIONAMENTO
-  Col1 := 15;
-  Col2 := 170;
-  Y    := 50;
-  AlturaLinha := 55;
+  Col1 := 15; Col2 := 170; Y := 40; AlturaLinha := 50;
 
-  // LINHA 1
-  PosicionarCampo(Label2, edtCodigo,      Col1, Y, 140);
-  PosicionarCampo(Label7, edtQuantidade,  Col2, Y, 140);
+  if Assigned(CheckSim) then begin PosicionarCampo(Label10, CheckSim, Col1, Y, 0); CheckSim.Width := 50; end;
 
-  // LINHA 2
+  Y := Y + 40;
+  PosicionarCampo(Label2, edtCodigo, Col1, Y, 140);
+  PosicionarCampo(Label7, edtQuantidade, Col2, Y, 140);
+
   Y := Y + AlturaLinha;
-  PosicionarCampo(Label3, edtColuna,      Col1, Y, 80);
-  PosicionarCampo(Label8, cbUnidade,      Col2, Y, 140);
+  PosicionarCampo(Label3, edtColuna, Col1, Y, 80);
+  PosicionarCampo(Label8, cbUnidade, Col2, Y, 140);
 
-  // LINHA 3
   Y := Y + AlturaLinha;
-  PosicionarCampo(Label4, edtLargura,     Col1, Y, 60);
-  PosicionarCampo(Label5, edtAltura,      Col1 + 70, Y, 60);
+  PosicionarCampo(Label4, edtLargura, Col1, Y, 60);
+  PosicionarCampo(Label5, edtAltura, Col1 + 70, Y, 60);
   PosicionarCampo(Label6, edtEspacamento, Col2, Y, 140);
 
-  // LINHA 4
   Y := Y + AlturaLinha;
   PosicionarCampo(label9, cbTipoImpressao, Col1, Y, 300);
 
-  // LINHA 5
   Y := Y + AlturaLinha;
-  if Assigned(rgFormatoExportacao) then
-  begin
-    rgFormatoExportacao.Left := Col1;
-    rgFormatoExportacao.Top  := Y;
-    rgFormatoExportacao.Width := 300;
-    rgFormatoExportacao.Height := 75;
+  if Assigned(rgFormatoExportacao) then begin
+    rgFormatoExportacao.Left := Col1; rgFormatoExportacao.Top := Y;
+    rgFormatoExportacao.Width := 300; rgFormatoExportacao.Height := 65;
   end;
 
-  // BOTÕES
-  if PainelLateral.Height > 400 then
-  begin
-    BtnGerarEtiqueta.Left  := Col1;
-    BtnGerarEtiqueta.Width := 145;
-    BtnGerarEtiqueta.Top   := PainelLateral.Height - BtnGerarEtiqueta.Height - 20;
-
-    BtnExcel.Left  := Col2;
-    BtnExcel.Width := 145;
-    BtnExcel.Top   := BtnGerarEtiqueta.Top;
+  if Panel2.Height > 400 then begin
+    BtnGerarEtiqueta.Left := Col1; BtnGerarEtiqueta.Width := 145;
+    BtnGerarEtiqueta.Top := Panel2.Height - BtnGerarEtiqueta.Height - 50;
+    BtnGerar33x22.Left := Col2; BtnGerar33x22.Width := 145; BtnGerar33x22.Top := BtnGerarEtiqueta.Top;
+    BtnExcel.Left := Col1; BtnExcel.Width := 300; BtnExcel.Top := BtnGerarEtiqueta.Top + BtnGerarEtiqueta.Height + 5;
   end;
 end;
 
 procedure TGeradorEtiquetas.FormResize(Sender: TObject);
-begin
-  AjustarLayoutGeral;
-end;
+begin AjustarLayoutGeral; end;
 
 // ============================================================================
-//  FUNÇÕES AUXILIARES
+//  UTILITÁRIOS
 // ============================================================================
 function TGeradorEtiquetas.StrToFloatSafe(const S: string; Default: Single): Single;
 var TempS: string;
 begin
   if Trim(S) = '' then Exit(Default);
   TempS := S;
-  if FormatSettings.DecimalSeparator = ',' then
-    TempS := StringReplace(TempS, '.', ',', [rfReplaceAll])
-  else
-    TempS := StringReplace(TempS, ',', '.', [rfReplaceAll]);
+  if FormatSettings.DecimalSeparator = ',' then TempS := StringReplace(TempS, '.', ',', [rfReplaceAll])
+  else TempS := StringReplace(TempS, ',', '.', [rfReplaceAll]);
   Result := StrToFloatDef(TempS, Default);
 end;
 
-// ============================================================================
-//  PERSISTÊNCIA (INI)
-// ============================================================================
 procedure TGeradorEtiquetas.CarregarConfiguracoes;
 var ArquivoIni: TIniFile;
 begin
   ArquivoIni := TIniFile.Create(ChangeFileExt(Application.ExeName, '.ini'));
   try
-    // LÊ O ARQUIVO. Se não tiver nada (ou se você apagou o arquivo), usa os novos padrões.
-    edtLargura.Text     := ArquivoIni.ReadString('ConfigEtiqueta', 'Largura', '5');
-    edtAltura.Text      := ArquivoIni.ReadString('ConfigEtiqueta', 'Altura', '10');
-    edtEspacamento.Text := ArquivoIni.ReadString('ConfigEtiqueta', 'Espacamento', '1');
-
-    edtColuna.Text      := ArquivoIni.ReadString('ConfigEtiqueta', 'Colunas', '1');
+    edtLargura.Text := ArquivoIni.ReadString('ConfigEtiqueta', 'Largura', '100');
+    edtAltura.Text := ArquivoIni.ReadString('ConfigEtiqueta', 'Altura', '29,5');
+    edtEspacamento.Text := ArquivoIni.ReadString('ConfigEtiqueta', 'Espacamento', '0');
+    edtColuna.Text := ArquivoIni.ReadString('ConfigEtiqueta', 'Colunas', '1');
     if (edtColuna.Text = '') or (edtColuna.Text = '0') then edtColuna.Text := '1';
-
-    edtQuantidade.Text  := ArquivoIni.ReadString('ConfigEtiqueta', 'QuantidadePadrao', '1');
-
-    if ArquivoIni.ValueExists('ConfigEtiqueta', 'TipoImpressao') then
-      cbTipoImpressao.ItemIndex := ArquivoIni.ReadInteger('ConfigEtiqueta', 'TipoImpressao', 0);
-
-    if ArquivoIni.ValueExists('ConfigEtiqueta', 'UnidadeMedida') then
-      cbUnidade.ItemIndex := ArquivoIni.ReadInteger('ConfigEtiqueta', 'UnidadeMedida', 0);
-  finally
-    ArquivoIni.Free;
-  end;
+    edtQuantidade.Text := ArquivoIni.ReadString('ConfigEtiqueta', 'QuantidadePadrao', '1');
+    if ArquivoIni.ValueExists('ConfigEtiqueta', 'TipoImpressao') then cbTipoImpressao.ItemIndex := ArquivoIni.ReadInteger('ConfigEtiqueta', 'TipoImpressao', 0);
+    if ArquivoIni.ValueExists('ConfigEtiqueta', 'UnidadeMedida') then cbUnidade.ItemIndex := ArquivoIni.ReadInteger('ConfigEtiqueta', 'UnidadeMedida', 0);
+  finally ArquivoIni.Free; end;
 end;
 
 procedure TGeradorEtiquetas.SalvarConfiguracoes;
@@ -278,80 +243,90 @@ begin
     ArquivoIni.WriteString('ConfigEtiqueta', 'QuantidadePadrao', edtQuantidade.Text);
     ArquivoIni.WriteInteger('ConfigEtiqueta', 'TipoImpressao', cbTipoImpressao.ItemIndex);
     ArquivoIni.WriteInteger('ConfigEtiqueta', 'UnidadeMedida', cbUnidade.ItemIndex);
-  finally
-    ArquivoIni.Free;
-  end;
+  finally ArquivoIni.Free; end;
 end;
 
 // ============================================================================
-//  INICIALIZAÇÃO (FORM CREATE)
+//  INICIALIZAÇÃO
 // ============================================================================
 procedure TGeradorEtiquetas.FormCreate(Sender: TObject);
 var i: Integer;
 begin
   Self.WindowState := wsMaximized;
-
-  // Configura Paineis e Combos
   if Assigned(Panel1) then Panel1.Align := alTop;
-  if Assigned(Panel2) then
-  begin
-    Panel2.Align := alLeft;
-    Panel2.Width := 340;
-    Panel2.ParentBackground := False;
-    for i := 0 to Panel2.ControlCount - 1 do
-      Panel2.Controls[i].Anchors := [akLeft, akTop];
+  if Assigned(Panel2) then begin
+    Panel2.Align := alLeft; Panel2.Width := 340; Panel2.ParentBackground := False;
+    for i := 0 to Panel2.ControlCount - 1 do Panel2.Controls[i].Anchors := [akLeft, akTop];
   end;
   DBGrid1.Align := alClient;
 
-  cbUnidade.Items.Clear;
-  cbUnidade.Items.Add('Polegadas (inches)');
-  cbUnidade.Items.Add('Milímetros (mm)');
-  cbUnidade.ItemIndex := 0;
+  cbUnidade.Items.Clear; cbUnidade.Items.Add('Polegadas (inches)'); cbUnidade.Items.Add('Milímetros (mm)'); cbUnidade.ItemIndex := 0;
+  cbTipoImpressao.Items.Clear; cbTipoImpressao.Items.Add('Visualizar (Prévia)'); cbTipoImpressao.Items.Add('Imprimir Direto'); cbTipoImpressao.ItemIndex := 0;
 
-  cbTipoImpressao.Items.Clear;
-  cbTipoImpressao.Items.Add('Visualizar (Prévia)');
-  cbTipoImpressao.Items.Add('Imprimir Direto');
-  cbTipoImpressao.ItemIndex := 0;
-
-  // Lógica de Dados
   DataSource1.DataSet := FDQuery2;
-  FDQuery2.AfterScroll := EventoAposRolar; // Liga a proteção
-
   dsRelatorio := TDataSource.Create(Self);
   dsRelatorio.DataSet := mtEtiquetas;
   ppDBPipeline1.DataSource := dsRelatorio;
 
-  // Carrega e Ajusta
   CarregarConfiguracoes;
   AjustarLayoutGeral;
 end;
 
-// [NOVO] ESSE EVENTO RODA DEPOIS QUE TUDO CARREGOU - AQUI É A MÁGICA
 procedure TGeradorEtiquetas.FormShow(Sender: TObject);
 begin
   if not FDQuery2.Active then
-  begin
-    try
-      FDQuery2.Open;
-      // Força a limpeza do campo Colunas DEPOIS que a tela já apareceu
-      if not FDQuery2.IsEmpty then
-      begin
-         edtCodigo.Text := FDQuery2.FieldByName('CodigoProduto').AsString;
-         edtColuna.Text := '1'; // TIRA O 000001
-      end;
-    except
-      // Erro silencioso na abertura (se banco desconectado)
-    end;
-  end;
+  try
+    FDQuery2.Open;
+    if (not CheckSim.Checked) and (edtCodigo.Text = '') and (not FDQuery2.IsEmpty) then
+       edtCodigo.Text := FDQuery2.FieldByName('CodigoProduto').AsString;
+  except end;
 end;
 
 procedure TGeradorEtiquetas.FormClose(Sender: TObject; var Action: TCloseAction);
+begin SalvarConfiguracoes; end;
+
+// ============================================================================
+//  CONFIGURAÇÃO DE PAPEL
+// ============================================================================
+procedure TGeradorEtiquetas.ConfigureReportGeneric(Report: TppReport; NumColunas: Integer; LarguraEtiqueta, AlturaEtiqueta, Espacamento: Single);
+var
+  LarguraPapel, Margem: Double;
+  i: Integer;
+  lDetail: TppDetailBand;
 begin
-  SalvarConfiguracoes;
+  if cbUnidade.ItemIndex = 1 then Report.Units := utMillimeters else Report.Units := utInches;
+  Margem := 0.1;
+
+  if NumColunas > 1 then LarguraPapel := (LarguraEtiqueta * NumColunas) + (Espacamento * (NumColunas - 1)) + (Margem * 2)
+  else LarguraPapel := LarguraEtiqueta + (Margem * 2);
+
+  with Report.PrinterSetup do begin
+    PaperName := 'Custom'; PaperWidth := LarguraPapel; PaperHeight := AlturaEtiqueta;
+    MarginTop := 0; MarginBottom := 0; MarginLeft := Margem; MarginRight := Margem;
+    Orientation := poPortrait;
+  end;
+
+  lDetail := nil;
+  for i := 0 to Report.BandCount - 1 do if Report.Bands[i] is TppDetailBand then begin lDetail := TppDetailBand(Report.Bands[i]); Break; end;
+
+  if Assigned(lDetail) then begin
+     lDetail.Height := AlturaEtiqueta - 0.1;
+     Report.Columns := NumColunas;
+     if Assigned(Report.ColumnPositions) then Report.ColumnPositions.Clear;
+
+     if NumColunas > 1 then begin
+       Report.ColumnWidth := LarguraEtiqueta;
+       lDetail.ColumnTraversal := ctLeftToRight;
+     end
+     else begin
+       Report.ColumnWidth := LarguraPapel;
+       lDetail.ColumnTraversal := ctTopToBottom;
+     end;
+  end;
 end;
 
 // ============================================================================
-//  GERAR ETIQUETA
+//  BOTÃO 1: GÔNDOLA (AMARELA) - COM LEFT JOIN (Traz todos)
 // ============================================================================
 procedure TGeradorEtiquetas.BtnGerarEtiquetaClick(Sender: TObject);
 var
@@ -360,135 +335,143 @@ var
   LarguraEtiqueta, AlturaEtiqueta, EspacamentoColunas: Single;
   BaseSQL, SQLOriginal: string;
 begin
-  if not Conexao.Connected then
-  begin
-    try Conexao.Connected := True; except on E: Exception do begin ShowMessage('Erro Conexão: ' + E.Message); Exit; end; end;
-  end;
+  if not Conexao.Connected then try Conexao.Connected := True; except Exit; end;
 
-  if Trim(edtCodigo.Text) = '' then
-  begin
-    if (FDQuery2.Active) and (not FDQuery2.IsEmpty) then
-       edtCodigo.Text := FDQuery2.FieldByName('CodigoProduto').AsString;
-
-    if Trim(edtCodigo.Text) = '' then
-    begin
-      ShowMessage('Informe o Código no campo "CÓDIGO DO PRODUTO" ou clique na tabela.');
-      if edtCodigo.CanFocus then edtCodigo.SetFocus;
-      Exit;
-    end;
-  end;
+  if (not CheckSim.Checked) and (Trim(edtCodigo.Text) = '') then begin ShowMessage('Informe o Código.'); Exit; end;
 
   SQLOriginal := FDQuery2.SQL.Text;
 
   try
-      ListaDeCodigos := StringReplace(edtCodigo.Text, ' ', ',', [rfReplaceAll]);
-      ListaDeCodigosFormatada := '''' + StringReplace(ListaDeCodigos, ',', ''',''', [rfReplaceAll]) + '''';
-
       Quantidade := StrToIntDef(edtQuantidade.Text, 1);
-      NumColunas := StrToIntDef(edtColuna.Text, 1);
-      if NumColunas <= 0 then NumColunas := 1;
+      NumColunas := StrToIntDef(edtColuna.Text, 1); if NumColunas <= 0 then NumColunas := 1;
+      LarguraEtiqueta := StrToFloatSafe(edtLargura.Text, 100);
+      AlturaEtiqueta  := StrToFloatSafe(edtAltura.Text, 29.5);
+      EspacamentoColunas := StrToFloatSafe(edtEspacamento.Text, 0);
 
-      LarguraEtiqueta := StrToFloatSafe(edtLargura.Text, 5.0);
-      AlturaEtiqueta  := StrToFloatSafe(edtAltura.Text, 10.0);
-      EspacamentoColunas := StrToFloatSafe(edtEspacamento.Text, 1.0);
-
-      ConfigureReportForLabels(NumColunas, LarguraEtiqueta, AlturaEtiqueta, EspacamentoColunas);
+      ConfigureReportGeneric(EtiquetaGondula, NumColunas, LarguraEtiqueta, AlturaEtiqueta, EspacamentoColunas);
 
       if Assigned(ppDBBarCode1) then ppDBBarCode1.DataField := 'CodigoProduto';
+      if Assigned(ppDBText3) then ppDBText3.DataField := 'CodigoUnidade';
 
       FDQuery2.Close;
+
+      // [LEFT JOIN] Para trazer os produtos mesmo sem imposto cadastrado
       BaseSQL := 'SELECT P.au_ite AS CodigoProduto, P.ab_ite + '' '' + P.ac_ite AS Descricao, ' +
-                 'P.ad_ite AS CodigoUnidade, A.PrecoVendaMin AS PrecoMinimo, A.PrecoVendaMax AS PrecoMaximo, ' +
-                 'I.NCM AS NCM_Imposto, I.CSTsaidas AS CST_Saida, I.ALIQUOTAICMS AS AliquotaICMS ' +
+                 'CASE WHEN P.ad_ite = ''01'' THEN ''UN'' WHEN P.ad_ite = ''02'' THEN ''KG'' ' +
+                 'WHEN P.ad_ite = ''03'' THEN ''LT'' WHEN P.ad_ite = ''04'' THEN ''CX'' ELSE P.ad_ite END AS CodigoUnidade, ' +
+                 'A.PrecoVendaMin AS PrecoMinimo, A.PrecoVendaMax AS PrecoMaximo, I.NCM AS NCM_Imposto, I.CSTsaidas AS CST_Saida ' +
                  'FROM CE_PRODUTO P ' +
-                 'INNER JOIN CE_PRODUTOS_ADICIONAIS A ON P.au_ite = A.CodReduzido ' +
-                 'INNER JOIN CE_PRODUTOS_IMPOSTOS I ON P.au_ite = I.CodReduzido ' +
-                 'WHERE P.au_ite IN (' + ListaDeCodigosFormatada + ') ORDER BY P.au_ite';
-      FDQuery2.SQL.Text := BaseSQL;
+                 'LEFT JOIN CE_PRODUTOS_ADICIONAIS A ON P.au_ite = A.CodReduzido ' +
+                 'LEFT JOIN CE_PRODUTOS_IMPOSTOS I ON P.au_ite = I.CodReduzido ';
 
-      FDQuery2.Open;
-
-      if FDQuery2.IsEmpty then
+      if CheckSim.Checked then
+         BaseSQL := BaseSQL + ' ORDER BY P.au_ite'
+      else
       begin
-        FDQuery2.Close;
-        FDQuery2.SQL.Text := SQLOriginal;
-        FDQuery2.Open;
-        ShowMessage('Produto não encontrado.');
-        Exit;
+         ListaDeCodigos := StringReplace(edtCodigo.Text, ' ', ',', [rfReplaceAll]);
+         ListaDeCodigosFormatada := '''' + StringReplace(ListaDeCodigos, ',', ''',''', [rfReplaceAll]) + '''';
+         BaseSQL := BaseSQL + ' WHERE P.au_ite IN (' + ListaDeCodigosFormatada + ') ORDER BY P.au_ite';
       end;
 
-      mtEtiquetas.Close;
-      mtEtiquetas.FieldDefs.Clear;
-      mtEtiquetas.FieldDefs.Assign(FDQuery2.FieldDefs);
-      mtEtiquetas.CreateDataSet;
+      FDQuery2.SQL.Text := BaseSQL;
+      FDQuery2.Open;
 
+      if FDQuery2.IsEmpty then begin FDQuery2.Close; FDQuery2.SQL.Text := SQLOriginal; FDQuery2.Open; ShowMessage('Produto não encontrado.'); Exit; end;
+
+      mtEtiquetas.Close; mtEtiquetas.FieldDefs.Clear; mtEtiquetas.FieldDefs.Assign(FDQuery2.FieldDefs);
+      mtEtiquetas.CreateDataSet;
       mtEtiquetas.DisableControls;
       try
         FDQuery2.First;
-        while not FDQuery2.Eof do
-        begin
-           for I := 1 to Quantidade do
-           begin
-             mtEtiquetas.Append;
-             mtEtiquetas.CopyFields(FDQuery2);
-             mtEtiquetas.Post;
-           end;
+        while not FDQuery2.Eof do begin
+           for I := 1 to Quantidade do begin mtEtiquetas.Append; mtEtiquetas.CopyFields(FDQuery2); mtEtiquetas.Post; end;
            FDQuery2.Next;
         end;
-      finally
-        mtEtiquetas.First;
-        mtEtiquetas.EnableControls;
-      end;
+      finally mtEtiquetas.First; mtEtiquetas.EnableControls; end;
 
       AjustarLayoutGeral;
-      Etiqueta.ShowPrintDialog := True;
-      if cbTipoImpressao.ItemIndex = 0 then Etiqueta.DeviceType := 'Screen' else Etiqueta.DeviceType := 'Printer';
-      Etiqueta.Print;
+      EtiquetaGondula.ShowPrintDialog := True;
+      if cbTipoImpressao.ItemIndex = 0 then EtiquetaGondula.DeviceType := 'Screen' else EtiquetaGondula.DeviceType := 'Printer';
+      EtiquetaGondula.Print;
 
   finally
-      if (SQLOriginal <> '') and (FDQuery2.SQL.Text <> SQLOriginal) then
-      begin
-        FDQuery2.Close;
-        FDQuery2.SQL.Text := SQLOriginal;
-        FDQuery2.Open;
-        EventoAposRolar(FDQuery2);
-      end;
+      if (SQLOriginal <> '') and (FDQuery2.SQL.Text <> SQLOriginal) then begin FDQuery2.Close; FDQuery2.SQL.Text := SQLOriginal; FDQuery2.Open; end;
   end;
 end;
 
 // ============================================================================
-//  CONFIGURAÇÃO IMPRESSORA
+//  BOTÃO 2: ETIQUETA 33x22 (BRANCA - 3 COLUNAS) - [CORREÇÃO UNIDADE]
 // ============================================================================
-procedure TGeradorEtiquetas.ConfigureReportForLabels(NumColunas: Integer; LarguraEtiqueta, AlturaEtiqueta, Espacamento: Single);
-var LarguraPapel, Margem: Double;
+procedure TGeradorEtiquetas.BtnGerar33x22Click(Sender: TObject);
+var
+  ListaDeCodigos, ListaDeCodigosFormatada: string;
+  Quantidade, NumColunas, I: Integer;
+  LarguraEtiqueta, AlturaEtiqueta, EspacamentoColunas: Single;
+  BaseSQL, SQLOriginal: string;
 begin
-  if cbUnidade.ItemIndex = 1 then Etiqueta.Units := utMillimeters else Etiqueta.Units := utInches;
-  Margem := 0.1;
+  if not Conexao.Connected then try Conexao.Connected := True; except Exit; end;
 
-  if NumColunas > 1 then
-    LarguraPapel := (LarguraEtiqueta * NumColunas) + (Espacamento * (NumColunas - 1)) + (Margem * 2)
-  else
-    LarguraPapel := LarguraEtiqueta + (Margem * 2);
+  if (not CheckSim.Checked) and (Trim(edtCodigo.Text) = '') then begin ShowMessage('Informe o Código.'); Exit; end;
 
-  with Etiqueta.PrinterSetup do
-  begin
-    PaperName := 'Custom';
-    PaperWidth := LarguraPapel;
-    PaperHeight := AlturaEtiqueta;
-    MarginTop := 0; MarginBottom := 0; MarginLeft := Margem; MarginRight := Margem;
-    if PaperWidth > PaperHeight then Orientation := poLandscape else Orientation := poPortrait;
+  SQLOriginal := FDQuery2.SQL.Text;
+
+  try
+      Quantidade := StrToIntDef(edtQuantidade.Text, 1);
+
+      // Lê o que você digitou na tela (Agora é DINÂMICO)
+      NumColunas := StrToIntDef(edtColuna.Text, 3); if NumColunas <= 1 then NumColunas := 3;
+      LarguraEtiqueta := StrToFloatSafe(edtLargura.Text, 33.5);
+      AlturaEtiqueta  := StrToFloatSafe(edtAltura.Text, 22.0);
+      EspacamentoColunas := StrToFloatSafe(edtEspacamento.Text, 2.0);
+
+      ConfigureReportGeneric(Etiqueta33x22, NumColunas, LarguraEtiqueta, AlturaEtiqueta, EspacamentoColunas);
+
+      // --- [CORREÇÃO] FORÇA A UNIDADE (ppDBText6) A APARECER ---
+      if Assigned(ppDBText6) then ppDBText6.DataField := 'CodigoUnidade';
+
+      FDQuery2.Close;
+
+      // [LEFT JOIN] Para trazer todos
+      BaseSQL := 'SELECT P.au_ite AS CodigoProduto, P.ab_ite + '' '' + P.ac_ite AS Descricao, ' +
+                 'CASE WHEN P.ad_ite = ''01'' THEN ''UN'' WHEN P.ad_ite = ''02'' THEN ''KG'' ' +
+                 'WHEN P.ad_ite = ''03'' THEN ''LT'' ELSE P.ad_ite END AS CodigoUnidade, ' +
+                 'A.PrecoVendaMin AS PrecoMinimo, A.PrecoVendaMax AS PrecoMaximo ' +
+                 'FROM CE_PRODUTO P ' +
+                 'LEFT JOIN CE_PRODUTOS_ADICIONAIS A ON P.au_ite = A.CodReduzido ' +
+                 'LEFT JOIN CE_PRODUTOS_IMPOSTOS I ON P.au_ite = I.CodReduzido ';
+
+      if CheckSim.Checked then
+         BaseSQL := BaseSQL + ' ORDER BY P.au_ite'
+      else
+      begin
+         ListaDeCodigos := StringReplace(edtCodigo.Text, ' ', ',', [rfReplaceAll]);
+         ListaDeCodigosFormatada := '''' + StringReplace(ListaDeCodigos, ',', ''',''', [rfReplaceAll]) + '''';
+         BaseSQL := BaseSQL + ' WHERE P.au_ite IN (' + ListaDeCodigosFormatada + ') ORDER BY P.au_ite';
+      end;
+
+      FDQuery2.SQL.Text := BaseSQL;
+      FDQuery2.Open;
+
+      if FDQuery2.IsEmpty then begin FDQuery2.Close; FDQuery2.SQL.Text := SQLOriginal; FDQuery2.Open; ShowMessage('Nenhum produto encontrado.'); Exit; end;
+
+      mtEtiquetas.Close; mtEtiquetas.FieldDefs.Clear; mtEtiquetas.FieldDefs.Assign(FDQuery2.FieldDefs);
+      mtEtiquetas.CreateDataSet;
+      mtEtiquetas.DisableControls;
+      try
+        FDQuery2.First;
+        while not FDQuery2.Eof do begin
+           for I := 1 to Quantidade do begin mtEtiquetas.Append; mtEtiquetas.CopyFields(FDQuery2); mtEtiquetas.Post; end;
+           FDQuery2.Next;
+        end;
+      finally mtEtiquetas.First; mtEtiquetas.EnableControls; end;
+
+      Etiqueta33x22.ShowPrintDialog := True;
+      if cbTipoImpressao.ItemIndex = 0 then Etiqueta33x22.DeviceType := 'Screen' else Etiqueta33x22.DeviceType := 'Printer';
+      Etiqueta33x22.Print;
+
+  finally
+      if (SQLOriginal <> '') and (FDQuery2.SQL.Text <> SQLOriginal) then begin FDQuery2.Close; FDQuery2.SQL.Text := SQLOriginal; FDQuery2.Open; end;
   end;
-
-  Etiqueta.Columns := NumColunas;
-  if Assigned(Etiqueta.ColumnPositions) then Etiqueta.ColumnPositions.Clear;
-
-  if NumColunas > 1 then
-  begin
-    Etiqueta.ColumnWidth := LarguraEtiqueta;
-    ppDetailBand1.ColumnTraversal := ctLeftToRight;
-  end
-  else
-    Etiqueta.ColumnWidth := LarguraPapel;
 end;
 
 // ============================================================================
@@ -524,14 +507,10 @@ begin
         HTML.Add('</tr>');
         DataSet.Next;
       end;
-    finally
-      DataSet.EnableControls;
-    end;
+    finally DataSet.EnableControls; end;
     HTML.Add('</table></body></html>');
     Result := HTML.Text;
-  finally
-    HTML.Free;
-  end;
+  finally HTML.Free; end;
 end;
 
 procedure TGeradorEtiquetas.BtnExcelClick(Sender: TObject);
@@ -566,9 +545,7 @@ begin
       SL.SaveToFile(SD.FileName, TEncoding.UTF8);
       ShowMessage('Salvo!');
     end;
-  finally
-    SD.Free; SL.Free;
-  end;
+  finally SD.Free; SL.Free; end;
 end;
 
 end.

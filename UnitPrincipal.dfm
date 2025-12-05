@@ -2,8 +2,8 @@ object GeradorEtiquetas: TGeradorEtiquetas
   Left = 0
   Top = 0
   Anchors = [akTop]
-  ClientHeight = 379
-  ClientWidth = 690
+  ClientHeight = 436
+  ClientWidth = 731
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,8 +19,8 @@ object GeradorEtiquetas: TGeradorEtiquetas
   object DBGrid1: TDBGrid
     Left = 312
     Top = 81
-    Width = 378
-    Height = 298
+    Width = 419
+    Height = 355
     Align = alRight
     Anchors = [akLeft, akTop, akRight, akBottom]
     DataSource = DataSource1
@@ -80,15 +80,21 @@ object GeradorEtiquetas: TGeradorEtiquetas
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 690
+    Width = 731
     Height = 81
     Align = alTop
     TabOrder = 1
+    ExplicitWidth = 690
+    DesignSize = (
+      731
+      81)
     object Label1: TLabel
-      Left = 262
+      Left = 283
       Top = 31
       Width = 165
       Height = 19
+      Alignment = taCenter
+      Anchors = [akTop]
       Caption = 'Gerador de Etiqueta'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -102,19 +108,20 @@ object GeradorEtiquetas: TGeradorEtiquetas
     Left = 0
     Top = 81
     Width = 313
-    Height = 298
+    Height = 355
     Align = alLeft
     Anchors = [akTop]
     Caption = 'Panel2'
     TabOrder = 2
+    ExplicitHeight = 298
     DesignSize = (
       313
-      298)
+      355)
     object Image1: TImage
       Left = 1
       Top = 1
       Width = 311
-      Height = 296
+      Height = 325
       Align = alClient
       Picture.Data = {
         0A544A504547496D61676506070000FFD8FFE000104A46494600010100000100
@@ -175,12 +182,14 @@ object GeradorEtiquetas: TGeradorEtiquetas
         9598C9DEBBD6604DD7598C9BADD6601BADD6601CB5CEBAC46E75CB5981B9D73A
         CC471CEB9D6606E3330366660199980666601FFFD9}
       Stretch = True
-      ExplicitLeft = 2
+      ExplicitLeft = 8
+      ExplicitTop = 6
+      ExplicitHeight = 296
     end
     object Label2: TLabel
       AlignWithMargins = True
-      Left = 180
-      Top = 16
+      Left = 224
+      Top = 21
       Width = 61
       Height = 13
       Caption = 'Quantidades'
@@ -190,10 +199,10 @@ object GeradorEtiquetas: TGeradorEtiquetas
     object Label3: TLabel
       AlignWithMargins = True
       Left = 8
-      Top = 16
+      Top = 21
       Width = 89
       Height = 13
-      Caption = 'Codigo do Produto'
+      Caption = 'C'#243'digo do Produto'
       ParentShowHint = False
       ShowHint = False
     end
@@ -256,26 +265,36 @@ object GeradorEtiquetas: TGeradorEtiquetas
       ParentShowHint = False
       ShowHint = False
     end
+    object Label10: TLabel
+      Left = 134
+      Top = 21
+      Width = 81
+      Height = 13
+      Caption = 'Selecionar Todos'
+    end
     object BtnExcel: TButton
-      Left = 16
-      Top = 256
-      Width = 121
+      Left = 1
+      Top = 326
+      Width = 311
       Height = 28
-      Anchors = [akTop]
+      Align = alBottom
       Caption = 'Exportar Para Excel'
       ParentShowHint = False
       ShowHint = False
       TabOrder = 0
       OnClick = BtnExcelClick
+      ExplicitLeft = 8
+      ExplicitTop = 235
+      ExplicitWidth = 101
     end
     object BtnGerarEtiqueta: TButton
       AlignWithMargins = True
-      Left = 160
-      Top = 256
+      Left = 8
+      Top = 292
       Width = 121
       Height = 28
       Anchors = [akTop]
-      Caption = 'Gerar Etiqueta'
+      Caption = 'Gerar Etiqueta Gondula'
       ParentShowHint = False
       ShowHint = False
       TabOrder = 1
@@ -352,7 +371,7 @@ object GeradorEtiquetas: TGeradorEtiquetas
     end
     object edtQuantidade: TEdit
       AlignWithMargins = True
-      Left = 180
+      Left = 221
       Top = 40
       Width = 85
       Height = 21
@@ -372,6 +391,23 @@ object GeradorEtiquetas: TGeradorEtiquetas
       ParentShowHint = False
       ShowHint = False
       TabOrder = 10
+    end
+    object CheckSim: TCheckBox
+      Left = 152
+      Top = 40
+      Width = 63
+      Height = 17
+      Caption = 'Sim'
+      TabOrder = 11
+    end
+    object BtnGerar33x22: TButton
+      Left = 173
+      Top = 292
+      Width = 133
+      Height = 28
+      Caption = 'Gerar Etiqueta 33x22'
+      TabOrder = 12
+      OnClick = BtnGerar33x22Click
     end
   end
   object Conexao: TFDConnection
@@ -394,7 +430,7 @@ object GeradorEtiquetas: TGeradorEtiquetas
   object ppDBPipeline1: TppDBPipeline
     DataSource = DataSource1
     UserName = 'DBPipeline1'
-    Left = 496
+    Left = 448
     Top = 24
     object ppDBPipeline1ppField1: TppField
       FieldAlias = 'CodigoProduto'
@@ -466,26 +502,27 @@ object GeradorEtiquetas: TGeradorEtiquetas
       Position = 8
     end
   end
-  object Etiqueta: TppReport
+  object EtiquetaGondula: TppReport
     AutoStop = False
     Columns = 2
     ColumnPositions.Strings = (
       '6350'
-      '120000')
+      '116500')
     DataPipeline = ppDBPipeline1
     PrinterSetup.BinName = 'Default'
     PrinterSetup.DocumentName = 'Report'
-    PrinterSetup.Orientation = poLandscape
+    PrinterSetup.Duplex = dpVertical
     PrinterSetup.PaperName = 'Custom'
-    PrinterSetup.PrinterName = 'Microsoft Print to PDF'
+    PrinterSetup.PrinterName = 'Default'
     PrinterSetup.SaveDeviceSettings = False
     PrinterSetup.mmMarginBottom = 6350
     PrinterSetup.mmMarginLeft = 6350
     PrinterSetup.mmMarginRight = 6350
     PrinterSetup.mmMarginTop = 6350
-    PrinterSetup.mmPaperHeight = 335000
-    PrinterSetup.mmPaperWidth = 240000
+    PrinterSetup.mmPaperHeight = 240000
+    PrinterSetup.mmPaperWidth = 335000
     PrinterSetup.PaperSize = 256
+    Units = utMillimeters
     ArchiveFileName = '($MyDocuments)\ReportArchive.raf'
     DeviceType = 'Screen'
     DefaultFileDeviceType = 'PDF'
@@ -539,10 +576,10 @@ object GeradorEtiquetas: TGeradorEtiquetas
     CloudDriveSettings.GoogleDriveSettings.DirectorySupport = False
     CloudDriveSettings.OneDriveSettings.OAuth2.RedirectPort = 0
     CloudDriveSettings.OneDriveSettings.DirectorySupport = True
-    Left = 568
+    Left = 528
     Top = 24
     Version = '21.0'
-    mmColumnWidth = 113650
+    mmColumnWidth = 110150
     DataPipelineName = 'ppDBPipeline1'
     object ppColumnHeaderBand1: TppColumnHeaderBand
       Background.Brush.Style = bsClear
@@ -558,17 +595,16 @@ object GeradorEtiquetas: TGeradorEtiquetas
       ColumnBalancing = True
       ColumnTraversal = ctLeftToRight
       mmBottomOffset = 0
-      mmHeight = 41540
+      mmHeight = 29898
       mmPrintPosition = 0
       object ppShape1: TppShape
         DesignLayer = ppDesignLayer1
         UserName = 'Shape1'
-        Brush.Color = clYellow
         Pen.Color = clWindowText
-        mmHeight = 29898
-        mmLeft = 1588
-        mmTop = 6085
-        mmWidth = 110596
+        mmHeight = 30000
+        mmLeft = 263
+        mmTop = -112
+        mmWidth = 110000
         BandType = 4
         LayerName = Foreground
       end
@@ -593,8 +629,8 @@ object GeradorEtiquetas: TGeradorEtiquetas
         Transparent = True
         DataPipelineName = 'ppDBPipeline1'
         mmHeight = 10583
-        mmLeft = 4233
-        mmTop = 21167
+        mmLeft = 2908
+        mmTop = 15072
         mmWidth = 61913
         BandType = 4
         LayerName = Foreground
@@ -616,8 +652,8 @@ object GeradorEtiquetas: TGeradorEtiquetas
         WordWrap = True
         DataPipelineName = 'ppDBPipeline1'
         mmHeight = 12700
-        mmLeft = 4233
-        mmTop = 8731
+        mmLeft = 2908
+        mmTop = 2636
         mmWidth = 70379
         BandType = 4
         LayerName = Foreground
@@ -636,8 +672,8 @@ object GeradorEtiquetas: TGeradorEtiquetas
         Transparent = True
         DataPipelineName = 'ppDBPipeline1'
         mmHeight = 7144
-        mmLeft = 84667
-        mmTop = 8731
+        mmLeft = 83342
+        mmTop = 2636
         mmWidth = 11642
         BandType = 4
         LayerName = Foreground
@@ -656,8 +692,8 @@ object GeradorEtiquetas: TGeradorEtiquetas
         FormFieldSettings.FormFieldType = fftNone
         Transparent = True
         mmHeight = 7144
-        mmLeft = 78581
-        mmTop = 8731
+        mmLeft = 77256
+        mmTop = 2636
         mmWidth = 3440
         BandType = 4
         LayerName = Foreground
@@ -672,14 +708,14 @@ object GeradorEtiquetas: TGeradorEtiquetas
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Name = 'Arial'
-        Font.Size = 18
+        Font.Size = 16
         Font.Style = []
         Transparent = True
         DataPipelineName = 'ppDBPipeline1'
-        mmHeight = 7144
-        mmLeft = 80698
-        mmTop = 22225
-        mmWidth = 30427
+        mmHeight = 6350
+        mmLeft = 76200
+        mmTop = 16140
+        mmWidth = 34131
         BandType = 4
         LayerName = Foreground
       end
@@ -691,15 +727,15 @@ object GeradorEtiquetas: TGeradorEtiquetas
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Name = 'Arial'
-        Font.Size = 18
+        Font.Size = 16
         Font.Style = []
         FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
         FormFieldSettings.FormFieldType = fftNone
         Transparent = True
-        mmHeight = 7144
-        mmLeft = 70644
-        mmTop = 22225
-        mmWidth = 7937
+        mmHeight = 6350
+        mmLeft = 66146
+        mmTop = 16140
+        mmWidth = 7144
         BandType = 4
         LayerName = Foreground
       end
@@ -771,5 +807,249 @@ object GeradorEtiquetas: TGeradorEtiquetas
     UpdateOptions.AutoCommitUpdates = True
     Left = 216
     Top = 24
+  end
+  object Etiqueta33x22: TppReport
+    AutoStop = False
+    Columns = 3
+    ColumnPositions.Strings = (
+      '6350'
+      '36350'
+      '66350')
+    DataPipeline = ppDBPipeline1
+    PrinterSetup.BinName = 'Default'
+    PrinterSetup.DocumentName = 'Report'
+    PrinterSetup.Duplex = dpVertical
+    PrinterSetup.PaperName = 'Custom'
+    PrinterSetup.PrinterName = 'Default'
+    PrinterSetup.SaveDeviceSettings = False
+    PrinterSetup.mmMarginBottom = 6350
+    PrinterSetup.mmMarginLeft = 6350
+    PrinterSetup.mmMarginRight = 6350
+    PrinterSetup.mmMarginTop = 6350
+    PrinterSetup.mmPaperHeight = 240000
+    PrinterSetup.mmPaperWidth = 335000
+    PrinterSetup.PaperSize = 256
+    Units = utMillimeters
+    ArchiveFileName = '($MyDocuments)\ReportArchive.raf'
+    DeviceType = 'Screen'
+    DefaultFileDeviceType = 'PDF'
+    EmailSettings.ReportFormat = 'PDF'
+    EmailSettings.ConnectionSettings.MailService = 'SMTP'
+    EmailSettings.ConnectionSettings.EnableMultiPlugin = False
+    EmailSettings.OAuth2 = {0E010C5265646972656374506F727402000000}
+    LanguageID = 'Default'
+    OpenFile = False
+    OutlineSettings.CreateNode = True
+    OutlineSettings.CreatePageNodes = True
+    OutlineSettings.Enabled = True
+    OutlineSettings.Visible = True
+    ThumbnailSettings.Enabled = True
+    ThumbnailSettings.Visible = True
+    ThumbnailSettings.DeadSpace = 30
+    ThumbnailSettings.PageHighlight.Width = 3
+    ThumbnailSettings.ThumbnailSize = tsSmall
+    PDFSettings.EmbedFontOptions = [efUseSubset]
+    PDFSettings.EncryptSettings.AllowCopy = True
+    PDFSettings.EncryptSettings.AllowInteract = True
+    PDFSettings.EncryptSettings.AllowModify = True
+    PDFSettings.EncryptSettings.AllowPrint = True
+    PDFSettings.EncryptSettings.AllowExtract = True
+    PDFSettings.EncryptSettings.AllowAssemble = True
+    PDFSettings.EncryptSettings.AllowQualityPrint = True
+    PDFSettings.EncryptSettings.Enabled = False
+    PDFSettings.EncryptSettings.KeyLength = kl40Bit
+    PDFSettings.EncryptSettings.EncryptionType = etRC4
+    PDFSettings.DigitalSignatureSettings.SignPDF = False
+    PDFSettings.FontEncoding = feAnsi
+    PDFSettings.ImageCompressionLevel = 25
+    PDFSettings.PDFAFormat = pafNone
+    PreviewFormSettings.PageBorder.mmPadding = 0
+    RTFSettings.DefaultFont.Charset = DEFAULT_CHARSET
+    RTFSettings.DefaultFont.Color = clWindowText
+    RTFSettings.DefaultFont.Height = -13
+    RTFSettings.DefaultFont.Name = 'Arial'
+    RTFSettings.DefaultFont.Style = []
+    TextFileName = '($MyDocuments)\Report.pdf'
+    TextSearchSettings.DefaultString = '<Texto a localizar>'
+    TextSearchSettings.Enabled = True
+    XLSSettings.AppName = 'ReportBuilder'
+    XLSSettings.Author = 'ReportBuilder'
+    XLSSettings.Subject = 'Report'
+    XLSSettings.Title = 'Report'
+    XLSSettings.WorksheetName = 'Report'
+    CloudDriveSettings.DropBoxSettings.OAuth2.RedirectPort = 0
+    CloudDriveSettings.DropBoxSettings.DirectorySupport = True
+    CloudDriveSettings.GoogleDriveSettings.OAuth2.RedirectPort = 0
+    CloudDriveSettings.GoogleDriveSettings.DirectorySupport = False
+    CloudDriveSettings.OneDriveSettings.OAuth2.RedirectPort = 0
+    CloudDriveSettings.OneDriveSettings.DirectorySupport = True
+    Left = 624
+    Top = 24
+    Version = '21.0'
+    mmColumnWidth = 30000
+    DataPipelineName = 'ppDBPipeline1'
+    object ppColumnHeaderBand2: TppColumnHeaderBand
+      Background.Brush.Style = bsClear
+      Border.mmPadding = 0
+      mmBottomOffset = 0
+      mmHeight = 0
+      mmPrintPosition = 0
+    end
+    object ppDetailBand2: TppDetailBand
+      Background1.Brush.Style = bsClear
+      Background2.Brush.Style = bsClear
+      Border.mmPadding = 0
+      ColumnBalancing = True
+      ColumnTraversal = ctLeftToRight
+      mmBottomOffset = 0
+      mmHeight = 22000
+      mmPrintPosition = 0
+      object ppDBText5: TppDBText
+        DesignLayer = ppDesignLayer2
+        UserName = 'DBText5'
+        AutoSize = True
+        Border.mmPadding = 0
+        DataField = 'Descricao'
+        DataPipeline = ppDBPipeline1
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Name = 'Arial'
+        Font.Size = 7
+        Font.Style = []
+        Transparent = True
+        WordWrap = True
+        DataPipelineName = 'ppDBPipeline1'
+        mmHeight = 6350
+        mmLeft = 1323
+        mmTop = 528
+        mmWidth = 27517
+        BandType = 4
+        LayerName = Foreground1
+      end
+      object ppDBText7: TppDBText
+        DesignLayer = ppDesignLayer2
+        UserName = 'DBText7'
+        AutoSize = True
+        Border.mmPadding = 0
+        DataField = 'PrecoMaximo'
+        DataPipeline = ppDBPipeline1
+        DisplayFormat = '#,0.00;(#,0.00)'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Name = 'Arial'
+        Font.Size = 9
+        Font.Style = []
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline1'
+        mmHeight = 3969
+        mmLeft = 6350
+        mmTop = 16139
+        mmWidth = 6350
+        BandType = 4
+        LayerName = Foreground1
+      end
+      object ppLabel4: TppLabel
+        DesignLayer = ppDesignLayer2
+        UserName = 'Label4'
+        Border.mmPadding = 0
+        Caption = 'R$'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 9
+        Font.Style = []
+        FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+        FormFieldSettings.FormFieldType = fftNone
+        Transparent = True
+        mmHeight = 3969
+        mmLeft = 1323
+        mmTop = 16139
+        mmWidth = 4233
+        BandType = 4
+        LayerName = Foreground1
+      end
+      object ppDBText6: TppDBText
+        DesignLayer = ppDesignLayer2
+        UserName = 'DBText6'
+        AutoSize = True
+        Border.mmPadding = 0
+        DataField = 'UnidadeMedida'
+        DataPipeline = ppDBPipeline1
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Name = 'Arial'
+        Font.Size = 9
+        Font.Style = []
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline1'
+        mmHeight = 3969
+        mmLeft = 25665
+        mmTop = 16139
+        mmWidth = 3704
+        BandType = 4
+        LayerName = Foreground1
+      end
+      object ppLabel3: TppLabel
+        DesignLayer = ppDesignLayer2
+        UserName = 'Label3'
+        Border.mmPadding = 0
+        Caption = '1'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Arial'
+        Font.Size = 9
+        Font.Style = []
+        FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+        FormFieldSettings.FormFieldType = fftNone
+        Transparent = True
+        mmHeight = 3969
+        mmLeft = 23283
+        mmTop = 16139
+        mmWidth = 1852
+        BandType = 4
+        LayerName = Foreground1
+      end
+      object ppDBBarCode2: TppDBBarCode
+        DesignLayer = ppDesignLayer2
+        UserName = 'DBBarCode2'
+        AlignBarCode = ahLeft
+        BarCodeType = bcCode39
+        BarColor = clBlack
+        Border.mmPadding = 0
+        DataField = 'CodigoProduto'
+        DataPipeline = ppDBPipeline1
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Name = 'Courier New'
+        Font.Size = 5
+        Font.Style = []
+        Transparent = True
+        DataPipelineName = 'ppDBPipeline1'
+        mmHeight = 7633
+        mmLeft = 1323
+        mmTop = 7671
+        mmWidth = 20020
+        BandType = 4
+        LayerName = Foreground1
+        mmBarWidth = 150
+        mmWideBarRatio = 76200
+      end
+    end
+    object ppColumnFooterBand2: TppColumnFooterBand
+      Background.Brush.Style = bsClear
+      Border.mmPadding = 0
+      mmBottomOffset = 0
+      mmHeight = 0
+      mmPrintPosition = 0
+    end
+    object ppDesignLayers2: TppDesignLayers
+      object ppDesignLayer2: TppDesignLayer
+        UserName = 'Foreground1'
+        LayerType = ltBanded
+        Index = 0
+      end
+    end
+    object ppParameterList2: TppParameterList
+    end
   end
 end
